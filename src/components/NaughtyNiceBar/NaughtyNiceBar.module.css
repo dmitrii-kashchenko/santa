@@ -147,18 +147,29 @@
     background-color: var(--segment-color);
   }
 
-  /* Partial segments: use width to show only the filled portion */
+  /* Partial segments and segments with wiggle: use width to show only the filled portion */
   /* Nice side (segments 6-10): show left portion by reducing width */
-  .segment[data-active="true"][data-naughty="false"][data-fill-percent]:not([data-fill-percent="1"]) {
+  .segment[data-active="true"][data-naughty="false"][data-fill-percent]:not([data-fill-percent="1"]):not([data-fill-percent="0"]) {
     width: calc(100% * (var(--fill-percent) + var(--wiggle, 0)));
 	border-inline-end: 2px solid var(--color-track-segment-hairline);
   }
 
   /* Naughty side (segments 1-5): show right portion by reducing width and aligning right */
-  .segment[data-active="true"][data-naughty="true"][data-fill-percent]:not([data-fill-percent="1"]) {
+  .segment[data-active="true"][data-naughty="true"][data-fill-percent]:not([data-fill-percent="1"]):not([data-fill-percent="0"]) {
     width: calc(100% * (var(--fill-percent) + var(--wiggle, 0)));
     margin-inline-start: auto;
 	border-inline-start: 2px solid var(--color-track-segment-hairline);
+  }
+
+  /* Optimistic wiggle segments (fillPercent = 0) - no border, just width from wiggle */
+  .segment[data-active="true"][data-fill-percent="0"] {
+    width: calc(max(0%, 100% * var(--wiggle, 0)));
+  }
+
+  /* Optimistic wiggle for full segments (negative even scores) */
+  .segment[data-active="true"][data-naughty="true"][data-fill-percent="1"] {
+    width: calc(100% * (var(--fill-percent) + var(--wiggle, 0)));
+    margin-inline-start: auto;
   }
 
 }

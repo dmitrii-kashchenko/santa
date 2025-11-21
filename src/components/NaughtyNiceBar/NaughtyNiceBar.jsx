@@ -1,6 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import styles from './NaughtyNiceBar.module.css';
 
+// Wiggle animation constants
+const WIGGLE_CONFIG = {
+  // Animation speed and wave parameters
+  animationSpeed: 35,          // Higher = faster animation
+  segmentOffset: 0.3,           // Phase offset between segments for wave effect
+  
+  // Normal partial segment wiggle (odd scores)
+  normalAmplitude: 0.06,        // ±6% wiggle
+  
+  // Optimistic wiggle for positive even scores (shows "next" segment)
+  positiveOptimisticMin: 0.05,  // Minimum width (5%)
+  positiveOptimisticRange: 0.15, // Range (15%), so total is 5-20%
+  
+  // Optimistic wiggle for negative even scores (shows slight retreat)
+  negativeOptimisticRange: -0.1, // -10% to 0%
+};
+
 // Simple 1D Perlin-like noise function
 const noise1D = (x) => {
   // Use multiple octaves of sine waves for smooth noise
@@ -44,6 +61,8 @@ export const NaughtyNiceBar = ({ score = 0 }) => {
   }, []);
 
   const getSegmentState = (i) => {
+    const isEvenScore = score % 2 === 0;
+    
     // Nice Side (Positive): Indices 5 to 9
     if (score > 0) {
       const startIndex = 5;
@@ -52,9 +71,15 @@ export const NaughtyNiceBar = ({ score = 0 }) => {
       if (i >= startIndex && i < endIndex) {
         if (i === Math.floor(endIndex)) {
           const fillPercent = endIndex % 1 || 1;
-          return { active: true, fillPercent };
+          return { active: true, fillPercent, isOptimistic: false };
         }
-        return { active: true, fillPercent: 1 };
+        return { active: true, fillPercent: 1, isOptimistic: false };
+      }
+      
+      // For even positive scores, show the NEXT segment (right after filled ones) with optimistic wiggle
+      // endIndex = 6 for score 2, so next segment is at index 6
+      if (isEvenScore && i === Math.floor(endIndex) && score < 10) {
+        return { active: true, fillPercent: 0, isOptimistic: true };
       }
     }
     
@@ -63,17 +88,25 @@ export const NaughtyNiceBar = ({ score = 0 }) => {
       const startIndex = 4;
       const absCount = Math.abs(segmentCount);
       const endIndex = startIndex - absCount; // e.g. 4 - 5 = -1
+      const partialSegmentIndex = Math.ceil(endIndex);
+      const lastFilledSegmentIndex = Math.floor(endIndex) + 1; // The segment closest to endIndex that's filled
       
       if (i <= startIndex && i > endIndex) {
-        if (i === Math.ceil(endIndex) && endIndex % 1 !== 0) {
+        if (i === partialSegmentIndex && endIndex % 1 !== 0) {
           const fillPercent = 1 - Math.abs(endIndex % 1);
-          return { active: true, fillPercent };
+          return { active: true, fillPercent, isOptimistic: false };
         }
-        return { active: true, fillPercent: 1 };
+        
+        // For even negative scores, the last filled segment should wiggle optimistically
+        if (isEvenScore && i === lastFilledSegmentIndex) {
+          return { active: true, fillPercent: 1, isOptimistic: true };
+        }
+        
+        return { active: true, fillPercent: 1, isOptimistic: false };
       }
     }
 
-    return { active: false, fillPercent: 1 };
+    return { active: false, fillPercent: 1, isOptimistic: false };
   };
 
   return (
@@ -87,13 +120,27 @@ export const NaughtyNiceBar = ({ score = 0 }) => {
     >
       <div className={styles.bar}>
         {Array.from({ length: 10 }).map((_, i) => {
-          const { active, fillPercent } = getSegmentState(i);
+          const { active, fillPercent, isOptimistic } = getSegmentState(i);
           const isNaughtySide = i < 5;
           
           // Calculate wiggle for this segment using Perlin noise
-          // Each segment gets offset in time slightly for wave effect
-          // Only apply wiggle to partial segments, not fully-filled ones
-          const wiggle = (active && fillPercent !== 1) ? noise1D(time * 10 + i * 0.3) * 0.10 : 0; // ±5% wiggle
+          let wiggle = 0;
+          
+          if (isOptimistic) {
+            // Optimistic wiggles
+            if (score > 0) {
+              // Positive even: wiggle next segment at low %
+              const normalizedNoise = noise1D(time * WIGGLE_CONFIG.animationSpeed + i * WIGGLE_CONFIG.segmentOffset) * 0.5 + 0.5; // 0-1
+              wiggle = normalizedNoise * WIGGLE_CONFIG.positiveOptimisticRange + WIGGLE_CONFIG.positiveOptimisticMin;
+            } else if (score < 0) {
+              // Negative even: wiggle between 90-100%
+              const normalizedNoise = noise1D(time * WIGGLE_CONFIG.animationSpeed + i * WIGGLE_CONFIG.segmentOffset) * 0.5 + 0.5; // 0-1
+              wiggle = normalizedNoise * WIGGLE_CONFIG.negativeOptimisticRange;
+            }
+          } else if (active && fillPercent !== 1) {
+            // Normal wiggle for partial segments
+            wiggle = noise1D(time * WIGGLE_CONFIG.animationSpeed + i * WIGGLE_CONFIG.segmentOffset) * WIGGLE_CONFIG.normalAmplitude;
+          }
           
           return (
             <div
