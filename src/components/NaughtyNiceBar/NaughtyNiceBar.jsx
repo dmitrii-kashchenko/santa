@@ -5,6 +5,10 @@ export const NaughtyNiceBar = ({ score = 0 }) => {
   const middleIndex = 5;
   const segmentCount = score / 2;
 
+  // Thresholds for icon changes
+  const isVeryNaughty = score <= -6;
+  const isVeryNice = score >= 6;
+
   const getSegmentState = (i) => {
     // Middle segment is always neutral
     if (i === middleIndex) {
@@ -67,7 +71,10 @@ export const NaughtyNiceBar = ({ score = 0 }) => {
       <div className={styles.labels} aria-hidden="true">
         {/* Naughty Group */}
         <div>
-          <img src="/icons/mood-sad.svg" alt="" />
+          <img 
+            src={isVeryNaughty ? "/icons/solid-mood-sad.svg" : "/icons/mood-sad.svg"} 
+            alt="" 
+          />
           <span>Naughty</span>
         </div>
         
@@ -79,7 +86,10 @@ export const NaughtyNiceBar = ({ score = 0 }) => {
         {/* Nice Group */}
         <div>
           <span>Nice</span>
-          <img src="/icons/mood-happy.svg" alt="" />
+          <img 
+            src={isVeryNice ? "/icons/solid-mood-happy.svg" : "/icons/mood-happy.svg"} 
+            alt="" 
+          />
         </div>
       </div>
     </div>

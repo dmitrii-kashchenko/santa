@@ -15,13 +15,10 @@
     grid-template-rows: auto auto;
     /* 11 equal columns for the segments */
     grid-template-columns: repeat(11, 1fr);
-    /* Gap relative to font size */
     gap: 0.5em 0;
     width: 100%;
-    /* Max width in characters for readability/consistency */
     max-width: 40ch;
     margin-inline: auto;
-    /* Establish a container for container units */
     container-type: inline-size;
   }
 
@@ -30,20 +27,14 @@
     grid-row: 1;
     grid-column: 1 / -1;
     
-    /* Adopt the parent's columns */
     display: grid;
     grid-template-columns: subgrid;
     
-    /* Height relative to line-height or em */
     height: 0.75em;
     border: 1px solid var(--color-ink);
-    /* Ensure background doesn't leak */
-    background: transparent;
   }
 
   .segment {
-    width: 100%;
-    height: 100%;
     border-right: 1px solid var(--color-ink);
   }
 
@@ -64,55 +55,52 @@
   .labels > div {
     display: flex;
     align-items: center;
-    /* Gap using container units - scales with width */
     gap: 1cqi;
   }
 
-  /* Naughty Group (First child) */
+  /* Naughty Group */
   .labels > div:nth-child(1) {
     grid-column: 1 / 6; /* Spans first 5 segments */
   }
 
-  /* Center Group (Middle child) */
+  /* Center Group */
   .labels > div:nth-child(2) {
     grid-column: 6 / 7; /* Spans middle segment */
     justify-content: center;
   }
 
-  /* Nice Group (Last child) */
+  /* Nice Group */
   .labels > div:nth-child(3) {
     grid-column: 7 / 12; /* Spans last 5 segments */
     justify-content: flex-end;
   }
 
   .labels img {
-    /* Sizing relative to text size */
     width: 1.5em;
     height: 1.5em;
     object-fit: contain;
     flex-shrink: 0;
+	image-rendering: crisp-edges;
   }
 }
 
 @layer theme {
   .container {
-    /* Semantic Palette - Using transparency/alpha for better blending */
-    --color-ink: rgb(0 0 0 / 0.7);     /* Was solid #4A4A4A */
-    --color-track: rgb(0 0 0 / 0.15);  /* Was solid #D3D3D3 */
+    --color-ink: hsl(0, 0%, 0%, 0.7);
+    --color-track: hsl(0, 0%, 0%, 0.15);
     
-    /* Gradient Stops */
-    --color-naughty-start: rgb(255 165 0); /* Orange */
-    --color-naughty-end: rgb(220 20 20);   /* Red */
-    --color-nice-start: rgb(255 255 0);    /* Yellow */
-    --color-nice-end: rgb(34 139 34);      /* Green */
+    --color-naughty-start: lch(46.5% 88.5 38);
+    --color-naughty-end: lch(75% 82.5 73);
+    --color-nice-start: lch(97% 97 103);
+    --color-nice-end: lch(50.5% 67 138);
   }
 
   .labels {
     font-family: 'FK Raster Grotesk Compact', sans-serif;
-    font-size: 0.85rem;
-    font-weight: 500;
+    font-size: 0.8rem;
+	line-height: 1;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.125em;
     white-space: nowrap;
     color: var(--color-ink);
   }
@@ -120,8 +108,6 @@
   /* Default inactive state */
   .segment {
     background-color: var(--color-track);
-    /* Smooth transition for color and opacity changes */
-    transition: background-color 0.3s ease;
   }
 
   /* 
