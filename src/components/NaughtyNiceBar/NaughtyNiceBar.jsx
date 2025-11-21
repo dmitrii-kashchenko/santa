@@ -17,9 +17,10 @@ export const NaughtyNiceBar = ({ score = 0 }) => {
       
       if (i >= startIndex && i < endIndex) {
         if (i === Math.floor(endIndex)) {
-          return { active: true, opacity: endIndex % 1 || 1 };
+          const fillPercent = endIndex % 1 || 1;
+          return { active: true, fillPercent };
         }
-        return { active: true, opacity: 1 };
+        return { active: true, fillPercent: 1 };
       }
     }
     
@@ -31,13 +32,14 @@ export const NaughtyNiceBar = ({ score = 0 }) => {
       
       if (i <= startIndex && i > endIndex) {
         if (i === Math.ceil(endIndex) && endIndex % 1 !== 0) {
-          return { active: true, opacity: 1 - (endIndex % 1) };
+          const fillPercent = 1 - Math.abs(endIndex % 1);
+          return { active: true, fillPercent };
         }
-        return { active: true, opacity: 1 };
+        return { active: true, fillPercent: 1 };
       }
     }
 
-    return { active: false, opacity: 1 };
+    return { active: false, fillPercent: 1 };
   };
 
   return (
@@ -51,13 +53,16 @@ export const NaughtyNiceBar = ({ score = 0 }) => {
     >
       <div className={styles.bar}>
         {Array.from({ length: 10 }).map((_, i) => {
-          const { active, opacity } = getSegmentState(i);
+          const { active, fillPercent } = getSegmentState(i);
+          const isNaughtySide = i < 5;
           return (
             <div
               key={i}
               className={styles.segment}
               data-active={active}
-              style={{ '--opacity': opacity }}
+              data-fill-percent={fillPercent}
+              data-naughty={isNaughtySide}
+              style={{ '--fill-percent': fillPercent }}
             />
           );
         })}
