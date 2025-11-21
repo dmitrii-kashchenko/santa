@@ -16,9 +16,11 @@ export const VideoCallWindow = ({
   isHairCheckComplete,
   setIsHairCheckComplete,
   conversationUrl,
+  conversationId,
   isCallEnded,
   setIsCallEnded,
-  windowRef
+  windowRef,
+  locationData
 }) => {
   const [showIntroVideo, setShowIntroVideo] = useState(true)
 
@@ -123,7 +125,9 @@ export const VideoCallWindow = ({
                     {console.log('[VideoCallWindow] Rendering Conversation component with URL:', conversationUrl)}
                     <Conversation 
                       conversationUrl={conversationUrl}
+                      conversationId={conversationId}
                       onLeave={handleConversationLeave}
+                      locationData={locationData}
                     />
                   </>
                 ) : (

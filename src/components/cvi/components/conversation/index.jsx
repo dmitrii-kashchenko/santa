@@ -13,6 +13,8 @@ import { useReplicaIDs } from '../../hooks/use-replica-ids';
 import { useCVICall } from '../../hooks/use-cvi-call';
 import { useLocalCamera } from '../../hooks/use-local-camera';
 import { useLocalMicrophone } from '../../hooks/use-local-microphone';
+import { useScoreTracking } from '../../../../hooks/useScoreTracking';
+import { getCurrentScoreContext } from '../../../../utils/scoreUtils';
 import { AudioWave } from '../audio-wave';
 
 import styles from './conversation.module.css';
@@ -111,28 +113,43 @@ const MainVideo = React.memo(() => {
 	);
 });
 
-export const Conversation = React.memo(({ onLeave, conversationUrl }) => {
-	const { joinCall, leaveCall } = useCVICall();
+export const Conversation = React.memo(({ onLeave, conversationUrl, conversationId, locationData = null }) => {
+	const { joinCall, leaveCall, onAppMessage, sendAppMessage } = useCVICall();
 	const meetingState = useMeetingState();
 	const { hasMicError, microphones, cameras, currentMic, currentCam, setMicrophone, setCamera } = useDevices();
 	const { isCamMuted, onToggleCamera } = useLocalCamera();
 	const { isMicMuted, onToggleMicrophone, localSessionId } = useLocalMicrophone();
-	const [countdown, setCountdown] = useState(120); // 2 minutes = 120 seconds
-	const [naughtyNiceRatio, setNaughtyNiceRatio] = useState(20); // 20% naughty (4 segments), 80% nice (16 segments)
+	const { currentScore, nicePercentage, processMessage } = useScoreTracking();
+	const [countdown, setCountdown] = useState(180); // 3 minutes = 180 seconds
 	const [showMicDropdown, setShowMicDropdown] = useState(false);
 	const [showVideoDropdown, setShowVideoDropdown] = useState(false);
 	const [isToolbarVisible, setIsToolbarVisible] = useState(true);
 	const micDropdownRef = useRef(null);
 	const videoDropdownRef = useRef(null);
+	const scoreContextSentRef = useRef(false);
+	const locationContextSentRef = useRef(false);
+	const echo30sSentRef = useRef(false);
+	const echo5sSentRef = useRef(false);
+	const echo30sIndexRef = useRef(0);
+	const echo5sIndexRef = useRef(0);
 
-	console.log('[Conversation] Component rendered, conversationUrl:', conversationUrl);
-	console.log('[Conversation] Meeting state:', meetingState);
-	console.log('[Conversation] Has mic error:', hasMicError);
+	const handleLeave = useCallback(() => {
+		leaveCall();
+		onLeave();
+	}, [leaveCall, onLeave]);
 
 	// Track countdown timer (2 minutes)
 	useEffect(() => {
 		if (meetingState === 'joined-meeting') {
-			setCountdown(120); // Reset to 2 minutes when joined
+			setCountdown(180); // Reset to 3 minutes when joined
+			// Reset echo message flags when joining
+			echo30sSentRef.current = false;
+			echo5sSentRef.current = false;
+			echo30sIndexRef.current = 0;
+			echo5sIndexRef.current = 0;
+			// Reset context flags when joining
+			scoreContextSentRef.current = false;
+			locationContextSentRef.current = false;
 			const interval = setInterval(() => {
 				setCountdown(prev => {
 					if (prev <= 1) {
@@ -143,12 +160,190 @@ export const Conversation = React.memo(({ onLeave, conversationUrl }) => {
 			}, 1000);
 			return () => clearInterval(interval);
 		} else {
-			setCountdown(120);
+			setCountdown(180);
 		}
 	}, [meetingState]);
 
-	// Naughty/Nice bar - starts at 50/50, can be updated later based on conversation
-	// For now, it stays at 50/50
+	// Automatically end call when countdown reaches 0
+	useEffect(() => {
+		if (countdown === 0 && meetingState === 'joined-meeting') {
+			console.log('[Conversation] Countdown reached 0, ending call');
+			handleLeave();
+		}
+	}, [countdown, meetingState, handleLeave]);
+
+	// Echo interactions at 30s and 5s
+	useEffect(() => {
+		if (!sendAppMessage || !conversationId || meetingState !== 'joined-meeting') {
+			return;
+		}
+
+		const messages30s = [
+			"Almost time for me to head out, quick, what's your Christmas wish?",
+			"My sleigh leaves soon! Tell me something festive you're excited about this year.",
+			"I have to leave shortly, has this year treated you well?",
+			"I'll be on my way soon, don't forget to spread a little Christmas cheer!"
+		];
+
+		const messages5s = [
+			"I have to dash off now, take care!",
+			"Ho ho ho! I must be on my way, until next time!"
+		];
+
+		// Send echo at 30 seconds
+		if (countdown === 30 && !echo30sSentRef.current) {
+			const message = messages30s[echo30sIndexRef.current];
+			sendAppMessage({
+				message_type: "conversation",
+				event_type: "conversation.echo",
+				conversation_id: conversationId,
+				properties: {
+					modality: "text",
+					text: message,
+					done: "true"
+				}
+			});
+			echo30sSentRef.current = true;
+			// Rotate to next message for next conversation
+			echo30sIndexRef.current = (echo30sIndexRef.current + 1) % messages30s.length;
+		}
+
+		// Send echo at 5 seconds
+		if (countdown === 5 && !echo5sSentRef.current) {
+			const message = messages5s[echo5sIndexRef.current];
+			sendAppMessage({
+				message_type: "conversation",
+				event_type: "conversation.echo",
+				conversation_id: conversationId,
+				properties: {
+					modality: "text",
+					text: message,
+					done: "true"
+				}
+			});
+			echo5sSentRef.current = true;
+			// Rotate to next message for next conversation
+			echo5sIndexRef.current = (echo5sIndexRef.current + 1) % messages5s.length;
+		}
+	}, [countdown, sendAppMessage, conversationId, meetingState]);
+
+	// Listen for Tavus CVI events to process AI responses
+	// The processMessage function extracts score tags (<+> and <->) from text
+	// and updates the score accordingly. It also returns the text with tags removed.
+	//
+	// ⚠️ CRITICAL: The LLM must be configured with a system prompt that instructs it to include
+	// <+> and <-> tags in its responses. This is typically configured in:
+	// - Tavus dashboard/persona settings
+	// - Backend conversation creation
+	// - Coda database if using that for persona config
+	//
+	// The system prompt should include instructions like:
+	// "Add <+> for positive behavior, <-> for negative behavior. Tags are invisible to users."
+	useEffect(() => {
+		if (!onAppMessage) {
+			return;
+		}
+
+		const unsubscribe = onAppMessage((event) => {
+			const { data } = event;
+			const eventType = data?.event_type || '';
+
+			// Check for more specific event types that might contain utterances
+			const isUtteranceEvent =
+				eventType.includes('utterance') ||
+				eventType.includes('transcript') ||
+				eventType === 'conversation.replica.utterance' ||
+				eventType === 'replica.utterance' ||
+				eventType === 'conversation.utterance';
+
+			// Send score context when replica is present (once per conversation)
+			if (eventType === 'system.replica_present' && !scoreContextSentRef.current && conversationId) {
+				const scoreContext = getCurrentScoreContext('user', 'santa-call');
+
+				if (sendAppMessage) {
+					sendAppMessage({
+						message_type: "conversation",
+						event_type: "conversation.respond",
+						conversation_id: conversationId,
+						properties: {
+							text: scoreContext,
+						},
+					});
+					scoreContextSentRef.current = true;
+				} else {
+					console.error('[Conversation] sendAppMessage is not available!');
+				}
+			}
+
+			// Send location context when replica is present (once per conversation)
+			if (eventType === 'system.replica_present' && !locationContextSentRef.current && conversationId && locationData) {
+				try {
+					const city = locationData.city || 'Unknown';
+					const region = locationData.region || 'Unknown';
+					const country = locationData.country || 'Unknown';
+					const countryCode = locationData.countryCode || 'Unknown';
+					const timezone = locationData.timezone || 'Unknown';
+					const locationContext = `User location information: The user is located in ${city}, ${region}, ${country} (${countryCode}). Timezone: ${timezone}.`;
+
+					if (sendAppMessage) {
+						sendAppMessage({
+							message_type: "conversation",
+							event_type: "conversation.append_llm_context",
+							conversation_id: conversationId,
+							properties: {
+								context: locationContext,
+							},
+						});
+						locationContextSentRef.current = true;
+						console.log('[Conversation] Location context sent:', locationContext);
+					} else {
+						console.error('[Conversation] sendAppMessage is not available!');
+					}
+				} catch (error) {
+					console.error('[Conversation] Error sending location context:', error);
+				}
+			}
+
+			// Try different paths to get the utterance text
+			const utteranceText =
+				event?.data?.text ||
+				event?.data?.utterance ||
+				event?.data?.transcript ||
+				event?.data?.content ||
+				event?.data?.properties?.text ||
+				event?.data?.properties?.speech ||
+				event?.data?.properties?.utterance ||
+				event?.text ||
+				event?.utterance ||
+				'';
+
+			// Try different paths to get the role
+			const role =
+				event?.data?.properties?.role ||
+				event?.data?.role ||
+				event?.properties?.role ||
+				event?.role ||
+				'';
+
+			// Only process replica (AI) utterances, not user messages
+			// Check both role and event type to catch all possible utterance events
+			if (
+				(role === 'replica' || isUtteranceEvent) &&
+				utteranceText &&
+				typeof utteranceText === 'string' &&
+				utteranceText.length > 0
+			) {
+				// Process message - this extracts tags, updates score, and returns clean text
+				processMessage(utteranceText);
+			}
+		});
+
+		return () => {
+			if (unsubscribe) {
+				unsubscribe();
+			}
+		};
+	}, [onAppMessage, sendAppMessage, conversationId, processMessage, locationData]);
 
 	// Close dropdowns when clicking outside
 	useEffect(() => {
@@ -176,34 +371,22 @@ export const Conversation = React.memo(({ onLeave, conversationUrl }) => {
 	};
 
 	useEffect(() => {
-		console.log('[Conversation] Meeting state changed:', meetingState);
 		if (meetingState === 'error') {
 			console.error('[Conversation] Meeting state is error, calling onLeave');
 			onLeave();
 		}
 		// Detect when call ends
 		if (meetingState === 'left-meeting' || meetingState === 'ended') {
-			console.log('[Conversation] Call ended, meeting state:', meetingState);
 			onLeave();
 		}
 	}, [meetingState, onLeave]);
 
 	// Initialize call when conversation is available
 	useEffect(() => {
-		console.log('[Conversation] useEffect triggered, conversationUrl:', conversationUrl);
 		if (conversationUrl) {
-			console.log('[Conversation] Calling joinCall with URL:', conversationUrl);
 			joinCall({ url: conversationUrl });
-		} else {
-			console.warn('[Conversation] No conversationUrl provided, cannot join call');
 		}
 	}, [conversationUrl, joinCall]);
-
-	const handleLeave = useCallback(() => {
-		console.log('[Conversation] Handle leave called');
-		leaveCall();
-		onLeave();
-	}, [leaveCall, onLeave]);
 
 	const handleVideoContainerClick = () => {
 		setIsToolbarVisible(prev => !prev);
@@ -348,13 +531,104 @@ export const Conversation = React.memo(({ onLeave, conversationUrl }) => {
 				<div className={styles.footerControlsBottom}>
 					<div className={styles.naughtyNiceBar}>
 						<div className={styles.naughtyNiceContainer}>
-							{Array.from({ length: 9 }).map((_, i) => {
-								// First 4 segments are gray, 5th and 6th are green, last 3 are gray
-								const isNice = i >= 4 && i < 6;
+							{Array.from({ length: 11 }).map((_, i) => {
+								// 11 segments total: 5 naughty (left), 1 neutral (middle), 5 nice (right)
+								// Middle segment (index 5) is always neutral gray
+								const middleIndex = 5;
+								const isNeutral = i === middleIndex;
+								
+								// Calculate segments based on score (-10 to +10)
+								// Every 2 points = 1 segment, so score 10 = 5 segments (full nice side)
+								const segmentCount = currentScore / 2;
+
+								const getSegmentState = (i) => {
+									// Middle segment is always neutral
+									if (isNeutral) {
+										return { isNice: false, isNaughty: false, isNeutral: true, opacity: 1 };
+									}
+									
+									if (currentScore > 0) {
+										// For positive scores, light up segments from the middle+1 (index 6) to the right
+										const startIndex = middleIndex + 1; // Start from index 6
+										const endIndex = startIndex + segmentCount;
+										
+										// Check if this segment is in the range [startIndex, endIndex)
+										if (i < startIndex || i >= Math.ceil(endIndex)) {
+											return { isNice: false, isNaughty: false, isNeutral: false, opacity: 1 };
+										}
+										
+										// Check if this is the last segment and it's partial
+										if (endIndex % 1 !== 0 && i === Math.floor(endIndex)) {
+											const partialAmount = endIndex % 1;
+											return { isNice: true, isNaughty: false, isNeutral: false, opacity: partialAmount };
+										}
+										
+										return { isNice: true, isNaughty: false, isNeutral: false, opacity: 1 };
+									} else if (currentScore < 0) {
+										// For negative scores, light up segments from the middle-1 (index 4) to the left
+										const startIndex = middleIndex - 1; // Start from index 4
+										const absSegmentCount = Math.abs(segmentCount);
+										const endIndex = startIndex - absSegmentCount;
+										
+										if (i <= Math.floor(endIndex) || i > startIndex) {
+											return { isNice: false, isNaughty: false, isNeutral: false, opacity: 1 };
+										}
+										
+										if (endIndex % 1 !== 0 && i === Math.ceil(endIndex)) {
+											const partialAmount = 1 - (endIndex % 1);
+											return { isNice: false, isNaughty: true, isNeutral: false, opacity: partialAmount };
+										}
+										
+										return { isNice: false, isNaughty: true, isNeutral: false, opacity: 1 };
+									}
+									
+									// Score 0 - neutral (except middle segment which is always neutral)
+									return { isNice: false, isNaughty: false, isNeutral: false, opacity: 1 };
+								};
+
+								const segmentState = getSegmentState(i);
+								
+								// Calculate color based on position for gradient effect
+								const getSegmentColor = () => {
+									if (segmentState.isNeutral) {
+										return '#D3D3D3'; // Gray for neutral
+									}
+									
+									if (segmentState.isNaughty) {
+										// Orange/yellow to red gradient (5 segments: indices 0-4)
+										// Index 0 = orange/yellow, index 4 = red
+										const naughtyIndex = i; // 0-4
+										const ratio = naughtyIndex / 4; // 0 to 1
+										// Orange/yellow (255, 165, 0) to red (220, 20, 20)
+										const red = Math.round(255 - (ratio * 35)); // 255 to 220
+										const green = Math.round(165 - (ratio * 145)); // 165 to 20
+										const blue = 0; // Always 0 for orange/yellow to red
+										return `rgb(${red}, ${green}, ${blue})`;
+									}
+									
+									if (segmentState.isNice) {
+										// Yellow to green gradient (5 segments: indices 6-10)
+										// Index 6 = yellow, index 10 = green
+										const niceIndex = i - 6; // 0-4
+										const ratio = niceIndex / 4; // 0 to 1
+										// Yellow (255, 255, 0) to green (34, 139, 34)
+										const red = Math.round(255 - (ratio * 221)); // 255 to 34
+										const green = Math.round(255 - (ratio * 116)); // 255 to 139
+										const blue = Math.round(0 + (ratio * 34)); // 0 to 34
+										return `rgb(${red}, ${green}, ${blue})`;
+									}
+									
+									return '#D3D3D3'; // Default gray
+								};
+								
 								return (
 									<div
 										key={i}
-										className={`${styles.segment} ${isNice ? styles.segmentNice : styles.segmentNaughty}`}
+										className={styles.segment}
+										style={{
+											backgroundColor: getSegmentColor(),
+											opacity: segmentState.isNice || segmentState.isNaughty ? segmentState.opacity : 1,
+										}}
 									/>
 								);
 							})}

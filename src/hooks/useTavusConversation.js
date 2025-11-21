@@ -1,21 +1,30 @@
 import { useState, useEffect } from 'react'
+import { getRandomGreeting } from '../utils/santaGreetings'
 
 /**
  * Custom hook for generating Tavus conversation URL
+ * Starts preloading when window is visible to optimize join times
  */
-export const useTavusConversation = (isHairCheckComplete) => {
+export const useTavusConversation = (isAnswered, shouldPreload = false) => {
   const [conversationUrl, setConversationUrl] = useState(null)
+  const [conversationId, setConversationId] = useState(null)
+  const [isGenerating, setIsGenerating] = useState(false)
 
-  // Reset conversationUrl when isHairCheckComplete becomes false
+  // Reset conversationUrl and conversationId when call is not answered
   useEffect(() => {
-    if (!isHairCheckComplete) {
+    if (!isAnswered) {
       setConversationUrl(null)
+      setConversationId(null)
+      setIsGenerating(false)
     }
-  }, [isHairCheckComplete])
+  }, [isAnswered])
 
   useEffect(() => {
-    if (isHairCheckComplete && !conversationUrl) {
-      console.log('[useTavusConversation] Hair check complete, generating conversation URL...')
+    // Start generating if we should preload (window visible) or if call is answered
+    // Only generate once - if already generating or already have URL, skip
+    if ((shouldPreload || isAnswered) && !conversationUrl && !isGenerating) {
+      console.log('[useTavusConversation] Starting conversation generation (preload:', shouldPreload, 'answered:', isAnswered, ')')
+      setIsGenerating(true)
       const generateConversationUrl = async () => {
         try {
           // Try multiple ways to get the API key
@@ -32,10 +41,15 @@ export const useTavusConversation = (isHairCheckComplete) => {
             return
           }
 
+          const customGreeting = getRandomGreeting()
+          console.log('[useTavusConversation] Selected greeting language:', customGreeting.substring(0, 50) + '...')
+
           console.log('[useTavusConversation] Making API request to Tavus...')
           const requestBody = {
-            persona_id: 'p3bb4745d4f9',
-            conversation_name: 'Santa Call'
+            persona_id: 'pe6534e5245c',
+            replica_id: 'r69a7ee6ca38',
+            conversation_name: 'Santa Call',
+            custom_greeting: customGreeting
           }
           console.log('[useTavusConversation] Request body:', requestBody)
           
@@ -56,11 +70,18 @@ export const useTavusConversation = (isHairCheckComplete) => {
             const data = await response.json()
             console.log('[useTavusConversation] API Response data:', data)
             const url = data.conversation_url || data.url
+            const id = data.conversation_id || data.id
             console.log('[useTavusConversation] Setting conversation URL:', url)
+            console.log('[useTavusConversation] Setting conversation ID:', id)
             if (url) {
               setConversationUrl(url)
             } else {
               console.error('[useTavusConversation] No conversation_url in response:', data)
+            }
+            if (id) {
+              setConversationId(id)
+            } else {
+              console.warn('[useTavusConversation] No conversation_id in response:', data)
             }
           } else {
             const errorText = await response.text()
@@ -75,13 +96,15 @@ export const useTavusConversation = (isHairCheckComplete) => {
         } catch (error) {
           console.error('[useTavusConversation] Error generating conversation URL:', error)
           console.error('[useTavusConversation] Error stack:', error.stack)
+        } finally {
+          setIsGenerating(false)
         }
       }
 
       generateConversationUrl()
     }
-  }, [isHairCheckComplete, conversationUrl])
+  }, [isAnswered, shouldPreload, conversationUrl, isGenerating])
 
-  return conversationUrl
+  return { conversationUrl, conversationId }
 }
 

@@ -1,14 +1,12 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useDaily } from '@daily-co/daily-react';
 
 export const useCVICall = () => {
 	const daily = useDaily();
-
-	console.log('[useCVICall] Daily instance:', daily ? 'exists' : 'null');
+	const appMessageHandlersRef = useRef(new Set());
 
 	const joinCall = useCallback(
 		({ url }) => {
-			console.log('[useCVICall] joinCall called with URL:', url);
 			if (!daily) {
 				console.error('[useCVICall] Daily instance is null, cannot join call');
 				return;
@@ -17,7 +15,6 @@ export const useCVICall = () => {
 				console.error('[useCVICall] No URL provided to joinCall');
 				return;
 			}
-			console.log('[useCVICall] Calling daily.join with URL:', url);
 			try {
 				daily.join({
 					url: url,
@@ -29,7 +26,6 @@ export const useCVICall = () => {
 						},
 					},
 				});
-				console.log('[useCVICall] daily.join called successfully');
 			} catch (error) {
 				console.error('[useCVICall] Error calling daily.join:', error);
 			}
@@ -38,9 +34,52 @@ export const useCVICall = () => {
 	);
 
 	const leaveCall = useCallback(() => {
-		console.log('[useCVICall] leaveCall called');
 		daily?.leave();
 	}, [daily]);
 
-	return { joinCall, leaveCall };
+	// Set up app message listener
+	useEffect(() => {
+		if (!daily) return;
+
+		const handleAppMessage = (event) => {
+			// Call all registered handlers
+			appMessageHandlersRef.current.forEach((handler) => {
+				try {
+					handler(event);
+				} catch (error) {
+					console.error('[useCVICall] Error in app message handler:', error);
+				}
+			});
+		};
+
+		daily.on('app-message', handleAppMessage);
+
+		return () => {
+			daily.off('app-message', handleAppMessage);
+		};
+	}, [daily]);
+
+	const onAppMessage = useCallback((handler) => {
+		appMessageHandlersRef.current.add(handler);
+		return () => {
+			appMessageHandlersRef.current.delete(handler);
+		};
+	}, []);
+
+	const sendAppMessage = useCallback(
+		(message) => {
+			if (!daily) {
+				console.error('[useCVICall] Cannot send app message: Daily instance not available');
+				return;
+			}
+			try {
+				daily.sendAppMessage(message, '*');
+			} catch (error) {
+				console.error('[useCVICall] Error sending app message:', error);
+			}
+		},
+		[daily]
+	);
+
+	return { joinCall, leaveCall, onAppMessage, sendAppMessage };
 };

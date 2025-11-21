@@ -1,0 +1,173 @@
+/**
+ * Score System Utilities
+ * Handles tag extraction, score storage, and score updates
+ */
+
+const MIN_SCORE = -10;
+const MAX_SCORE = 10;
+const MAX_SESSION_SCORE = 4;
+
+/**
+ * Extracts score tags from text and calculates the score change
+ * @param {string} text - Text to scan for tags
+ * @returns {number} - Score change (positive for <+>, <++>, <+++>, negative for <->, <-->, <--->)
+ */
+export function extractScoreTags(text) {
+	if (!text || typeof text !== 'string') return 0;
+
+	// Match in order from most to least specific to avoid double counting
+	// Match <+++> first (3 points), then <++> (2 points), then <+> (1 point)
+	const triplePlusMatches = text.match(/<\+\+\+>/g);
+	// Remove triple matches first, then match double
+	const textWithoutTriplePlus = text.replace(/<\+\+\+>/g, '');
+	const doublePlusMatches = textWithoutTriplePlus.match(/<\+\+>/g);
+	// Remove double matches, then match single
+	const textWithoutDoublePlus = textWithoutTriplePlus.replace(/<\+\+>/g, '');
+	const singlePlusMatches = textWithoutDoublePlus.match(/<\+>/g);
+
+	// Match <---> first (3 points), then <--> (2 points), then <-> (1 point)
+	// Need to match in order and exclude longer matches from shorter ones
+	const tripleMinusMatches = text.match(/<--->/g);
+	// Remove triple matches first, then match double
+	const textWithoutTriple = text.replace(/<--->/g, '');
+	const doubleMinusMatches = textWithoutTriple.match(/<-->/g);
+	// Remove double matches, then match single
+	const textWithoutDouble = textWithoutTriple.replace(/<-->/g, '');
+	const singleMinusMatches = textWithoutDouble.match(/<->/g);
+
+	// Calculate points: each match counts as its point value
+	const plusPoints = 
+		(triplePlusMatches ? triplePlusMatches.length * 3 : 0) +
+		(doublePlusMatches ? doublePlusMatches.length * 2 : 0) +
+		(singlePlusMatches ? singlePlusMatches.length * 1 : 0);
+
+	const minusPoints = 
+		(tripleMinusMatches ? tripleMinusMatches.length * 3 : 0) +
+		(doubleMinusMatches ? doubleMinusMatches.length * 2 : 0) +
+		(singleMinusMatches ? singleMinusMatches.length * 1 : 0);
+
+	const scoreChange = plusPoints - minusPoints;
+
+	return scoreChange;
+}
+
+/**
+ * Removes score tags from text for display
+ * @param {string} text - Text to clean
+ * @returns {string} - Text without score tags
+ */
+export function stripScoreTags(text) {
+	if (!text || typeof text !== 'string') return text;
+	// Remove in order from most to least specific to avoid partial matches
+	return text
+		.replace(/<\+\+\+>/g, '')
+		.replace(/<--->/g, '')
+		.replace(/<\+\+>/g, '')
+		.replace(/<-->/g, '')
+		.replace(/<\+>/g, '')
+		.replace(/<->/g, '');
+}
+
+/**
+ * Gets the stored score from localStorage
+ * @param {string} userId - User identifier
+ * @param {string} contextId - Context identifier (e.g., 'santa-call')
+ * @returns {number} - Current score (0 if not found)
+ */
+export function getStoredScore(userId, contextId) {
+	if (typeof window === 'undefined') return 0;
+
+	try {
+		const key = `score_${userId}_${contextId.toLowerCase()}`;
+		const stored = localStorage.getItem(key);
+		if (stored === null) {
+			return 0;
+		}
+
+		const score = parseInt(stored, 10);
+		const clampedScore = Math.max(MIN_SCORE, Math.min(MAX_SCORE, score));
+		return clampedScore;
+	} catch (error) {
+		console.error('[ScoreUtils] getStoredScore - Error reading score:', error);
+		return 0;
+	}
+}
+
+/**
+ * Stores the score to localStorage
+ * @param {string} userId - User identifier
+ * @param {string} contextId - Context identifier
+ * @param {number} score - Score to store
+ */
+export function storeScore(userId, contextId, score) {
+	if (typeof window === 'undefined') return;
+
+	try {
+		const key = `score_${userId}_${contextId.toLowerCase()}`;
+		const clampedScore = Math.max(MIN_SCORE, Math.min(MAX_SCORE, score));
+		localStorage.setItem(key, clampedScore.toString());
+	} catch (error) {
+		console.error('[ScoreUtils] storeScore - Error storing score:', error);
+	}
+}
+
+/**
+ * Updates the score while enforcing session limits and bounds
+ * @param {string} userId - User identifier
+ * @param {string} contextId - Context identifier
+ * @param {number} scoreChange - Change in score (can be positive or negative)
+ * @param {number} sessionStartScore - Score at the start of the session
+ * @returns {{totalScore: number, sessionScore: number, sessionScoreChange: number}}
+ */
+export function updateScore(userId, contextId, scoreChange, sessionStartScore) {
+	const currentTotal = getStoredScore(userId, contextId);
+	const currentSessionScore = currentTotal - sessionStartScore;
+
+	// Calculate new session score
+	const newSessionScore = currentSessionScore + scoreChange;
+
+	// Enforce max session score (4 points)
+	const cappedSessionScore = Math.min(newSessionScore, MAX_SESSION_SCORE);
+	const actualSessionScoreChange = cappedSessionScore - currentSessionScore;
+
+	// Calculate new total score
+	const newTotalScore = sessionStartScore + cappedSessionScore;
+
+	// Clamp to valid range
+	const clampedTotalScore = Math.max(MIN_SCORE, Math.min(MAX_SCORE, newTotalScore));
+
+	// Store the new score
+	storeScore(userId, contextId, clampedTotalScore);
+
+	return {
+		totalScore: clampedTotalScore,
+		sessionScore: cappedSessionScore,
+		sessionScoreChange: actualSessionScoreChange,
+	};
+}
+
+/**
+ * Converts a score (-10 to +10) to a percentage for the naughty/nice bar
+ * @param {number} score - Score value (-10 to +10)
+ * @returns {number} - Percentage of nice segments (0-100)
+ */
+export function scoreToNicePercentage(score) {
+	// Convert score from -10 to +10 range to 0-100% range
+	// Score -10 = 0% nice, Score 0 = 50% nice, Score +10 = 100% nice
+	const percentage = ((score + 10) / 20) * 100;
+	return percentage;
+}
+
+/**
+ * Gets the current score context string for system messages
+ * @param {string} userId - User identifier
+ * @param {string} contextId - Context identifier
+ * @returns {string} - Formatted score context like "<current_score>+3</current_score>"
+ */
+export function getCurrentScoreContext(userId, contextId) {
+	const score = getStoredScore(userId, contextId);
+	const scoreString = score >= 0 ? `+${score}` : `${score}`;
+	const context = `<current_score>${scoreString}</current_score>`;
+	return context;
+}
+
