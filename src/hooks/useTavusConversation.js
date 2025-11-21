@@ -3,22 +3,23 @@ import { getRandomGreeting } from '../utils/santaGreetings'
 
 /**
  * Custom hook for generating Tavus conversation URL
+ * Starts initializing when call is answered so it's ready by the time user joins
  */
-export const useTavusConversation = (isHairCheckComplete) => {
+export const useTavusConversation = (isAnswered) => {
   const [conversationUrl, setConversationUrl] = useState(null)
   const [conversationId, setConversationId] = useState(null)
 
-  // Reset conversationUrl and conversationId when isHairCheckComplete becomes false
+  // Reset conversationUrl and conversationId when call is not answered
   useEffect(() => {
-    if (!isHairCheckComplete) {
+    if (!isAnswered) {
       setConversationUrl(null)
       setConversationId(null)
     }
-  }, [isHairCheckComplete])
+  }, [isAnswered])
 
   useEffect(() => {
-    if (isHairCheckComplete && !conversationUrl) {
-      console.log('[useTavusConversation] Hair check complete, generating conversation URL...')
+    if (isAnswered && !conversationUrl) {
+      console.log('[useTavusConversation] Call answered, generating conversation URL...')
       const generateConversationUrl = async () => {
         try {
           // Try multiple ways to get the API key
@@ -41,7 +42,7 @@ export const useTavusConversation = (isHairCheckComplete) => {
           console.log('[useTavusConversation] Making API request to Tavus...')
           const requestBody = {
             persona_id: 'pe6534e5245c',
-            replica_id: 'rfe12d8b9597',
+            replica_id: 'r69a7ee6ca38',
             conversation_name: 'Santa Call',
             custom_greeting: customGreeting
           }
@@ -95,7 +96,7 @@ export const useTavusConversation = (isHairCheckComplete) => {
 
       generateConversationUrl()
     }
-  }, [isHairCheckComplete, conversationUrl])
+  }, [isAnswered, conversationUrl])
 
   return { conversationUrl, conversationId }
 }
