@@ -58,7 +58,13 @@ export function useScoreTracking(userId = DEFAULT_USER_ID, contextId = DEFAULT_C
 		}
 
 		// Return message with tags removed for display
-		return messageText.replace(/<\+>/g, '').replace(/<->/g, '');
+		return messageText
+			.replace(/<\+\+\+>/g, '')
+			.replace(/<--->/g, '')
+			.replace(/<\+\+>/g, '')
+			.replace(/<-->/g, '')
+			.replace(/<\+>/g, '')
+			.replace(/<->/g, '');
 	}, [userId, contextId]);
 
 	return {

@@ -10,17 +10,43 @@ const MAX_SESSION_SCORE = 4;
 /**
  * Extracts score tags from text and calculates the score change
  * @param {string} text - Text to scan for tags
- * @returns {number} - Score change (positive for <+>, negative for <->)
+ * @returns {number} - Score change (positive for <+>, <++>, <+++>, negative for <->, <-->, <--->)
  */
 export function extractScoreTags(text) {
 	if (!text || typeof text !== 'string') return 0;
 
-	const plusMatches = text.match(/<\+>/g);
-	const minusMatches = text.match(/<->/g);
+	// Match in order from most to least specific to avoid double counting
+	// Match <+++> first (3 points), then <++> (2 points), then <+> (1 point)
+	const triplePlusMatches = text.match(/<\+\+\+>/g);
+	// Remove triple matches first, then match double
+	const textWithoutTriplePlus = text.replace(/<\+\+\+>/g, '');
+	const doublePlusMatches = textWithoutTriplePlus.match(/<\+\+>/g);
+	// Remove double matches, then match single
+	const textWithoutDoublePlus = textWithoutTriplePlus.replace(/<\+\+>/g, '');
+	const singlePlusMatches = textWithoutDoublePlus.match(/<\+>/g);
 
-	const plusCount = plusMatches ? plusMatches.length : 0;
-	const minusCount = minusMatches ? minusMatches.length : 0;
-	const scoreChange = plusCount - minusCount;
+	// Match <---> first (3 points), then <--> (2 points), then <-> (1 point)
+	// Need to match in order and exclude longer matches from shorter ones
+	const tripleMinusMatches = text.match(/<--->/g);
+	// Remove triple matches first, then match double
+	const textWithoutTriple = text.replace(/<--->/g, '');
+	const doubleMinusMatches = textWithoutTriple.match(/<-->/g);
+	// Remove double matches, then match single
+	const textWithoutDouble = textWithoutTriple.replace(/<-->/g, '');
+	const singleMinusMatches = textWithoutDouble.match(/<->/g);
+
+	// Calculate points: each match counts as its point value
+	const plusPoints = 
+		(triplePlusMatches ? triplePlusMatches.length * 3 : 0) +
+		(doublePlusMatches ? doublePlusMatches.length * 2 : 0) +
+		(singlePlusMatches ? singlePlusMatches.length * 1 : 0);
+
+	const minusPoints = 
+		(tripleMinusMatches ? tripleMinusMatches.length * 3 : 0) +
+		(doubleMinusMatches ? doubleMinusMatches.length * 2 : 0) +
+		(singleMinusMatches ? singleMinusMatches.length * 1 : 0);
+
+	const scoreChange = plusPoints - minusPoints;
 
 	return scoreChange;
 }
@@ -32,7 +58,14 @@ export function extractScoreTags(text) {
  */
 export function stripScoreTags(text) {
 	if (!text || typeof text !== 'string') return text;
-	return text.replace(/<\+>/g, '').replace(/<->/g, '');
+	// Remove in order from most to least specific to avoid partial matches
+	return text
+		.replace(/<\+\+\+>/g, '')
+		.replace(/<--->/g, '')
+		.replace(/<\+\+>/g, '')
+		.replace(/<-->/g, '')
+		.replace(/<\+>/g, '')
+		.replace(/<->/g, '');
 }
 
 /**
