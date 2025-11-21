@@ -27,50 +27,29 @@ export const useTavusConversation = (isAnswered, shouldPreload = false) => {
       setIsGenerating(true)
       const generateConversationUrl = async () => {
         try {
-          // Try multiple ways to get the API key
-          const apiKey = import.meta.env.VITE_TAVUS_API_KEY || 
-                        import.meta.env.TAVUS_API_KEY ||
-                        'a1e1daafc143449b8c8c07dea5a56482' // Fallback to hardcoded key
-          
-          console.log('[useTavusConversation] API Key exists:', !!apiKey)
-          console.log('[useTavusConversation] API Key value (first 10 chars):', apiKey ? apiKey.substring(0, 10) + '...' : 'none')
-          console.log('[useTavusConversation] All env vars:', Object.keys(import.meta.env).filter(k => k.includes('TAVUS')))
-          
-          if (!apiKey) {
-            console.error('[useTavusConversation] Tavus API key not found')
-            return
-          }
-
           const customGreeting = getRandomGreeting()
           console.log('[useTavusConversation] Selected greeting language:', customGreeting.substring(0, 50) + '...')
 
-          console.log('[useTavusConversation] Making API request to Tavus...')
-          const requestBody = {
-            persona_id: 'pe6534e5245c',
-            replica_id: 'r69a7ee6ca38',
-            conversation_name: 'Santa Call',
-            custom_greeting: customGreeting
-          }
-          console.log('[useTavusConversation] Request body:', requestBody)
+          console.log('[useTavusConversation] Making API request to serverless function...')
           
-          // Generate conversation URL using Tavus API
-          const response = await fetch('https://tavusapi.com/v2/conversations', {
+          // Call serverless function instead of Tavus API directly
+          const response = await fetch('/api/create-conversation', {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/json',
-              'x-api-key': apiKey
+              'Content-Type': 'application/json'
             },
-            body: JSON.stringify(requestBody)
+            body: JSON.stringify({
+              custom_greeting: customGreeting
+            })
           })
 
           console.log('[useTavusConversation] API Response status:', response.status)
-          console.log('[useTavusConversation] API Response headers:', Object.fromEntries(response.headers.entries()))
           
           if (response.ok) {
             const data = await response.json()
             console.log('[useTavusConversation] API Response data:', data)
-            const url = data.conversation_url || data.url
-            const id = data.conversation_id || data.id
+            const url = data.conversation_url
+            const id = data.conversation_id
             console.log('[useTavusConversation] Setting conversation URL:', url)
             console.log('[useTavusConversation] Setting conversation ID:', id)
             if (url) {
@@ -84,14 +63,14 @@ export const useTavusConversation = (isAnswered, shouldPreload = false) => {
               console.warn('[useTavusConversation] No conversation_id in response:', data)
             }
           } else {
-            const errorText = await response.text()
-            console.error('[useTavusConversation] Failed to generate conversation URL:', response.status, errorText)
+            const errorText = await response.text().catch(() => 'Failed to read error response')
+            let errorData
             try {
-              const errorJson = JSON.parse(errorText)
-              console.error('[useTavusConversation] Error details:', errorJson)
-            } catch (e) {
-              // Not JSON, already logged as text
+              errorData = JSON.parse(errorText)
+            } catch {
+              errorData = { error: errorText }
             }
+            console.error('[useTavusConversation] Failed to generate conversation URL:', response.status, errorData)
           }
         } catch (error) {
           console.error('[useTavusConversation] Error generating conversation URL:', error)

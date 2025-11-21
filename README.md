@@ -87,17 +87,27 @@ src/
    npm install
    ```
 
-3. Create a `.env` file in the root directory:
-   ```env
-   VITE_TAVUS_API_KEY=your_api_key_here
-   ```
+3. Set up environment variables:
+   - For local development, create a `.env` file in the root directory:
+     ```env
+     TAVUS_API_KEY=your_api_key_here
+     ```
+   - For production on Vercel, add `TAVUS_API_KEY` in your Vercel project settings (Environment Variables)
 
-4. Start the development server:
+4. Install dependencies:
    ```bash
-   npm run dev
+   npm install
    ```
 
-5. Open your browser to the URL shown in the terminal (usually `http://localhost:5173`)
+5. Start the development server:
+   ```bash
+   vercel dev
+   ```
+   This runs both the Vite frontend and serverless functions locally.
+
+6. Open your browser to the URL shown in the terminal (usually `http://localhost:3000`)
+
+**Note**: Use `vercel dev` directly (not `npm run dev`) to run the serverless functions. The `npm run dev` command runs Vite only for quick frontend-only development.
 
 ### Build for Production
 
@@ -438,22 +448,32 @@ export const ASSET_PATHS = {
 The countdown logic is in `hooks/useCountdown.js`. To change the target date, modify the `getTimeUntilChristmas` function.
 
 #### Changing API Endpoint
-Edit `hooks/useTavusConversation.js`:
-```js
-const response = await fetch('https://tavusapi.com/v2/conversations', {
-  // Change URL here
-})
-```
+The API endpoint is now handled by a serverless function. To modify the Tavus API call:
+- Edit `api/create-conversation.js` to change the Tavus API endpoint or request body
+- The client-side hook in `hooks/useTavusConversation.js` calls `/api/create-conversation`
 
 ## Environment Variables
+
+The Tavus API key is handled securely through a serverless function. The API key is **never exposed to the client**.
+
+### Local Development
 
 Create a `.env` file in the root directory:
 
 ```env
-VITE_TAVUS_API_KEY=your_tavus_api_key_here
+TAVUS_API_KEY=your_tavus_api_key_here
 ```
 
-The app will fall back to a hardcoded key if the environment variable is not set (for development only).
+**Important**: Do NOT use `VITE_` prefix. The API key must be server-side only.
+
+### Production (Vercel)
+
+1. Go to your Vercel project settings
+2. Navigate to "Environment Variables"
+3. Add `TAVUS_API_KEY` with your Tavus API key value
+4. Deploy your project
+
+The serverless function at `/api/create-conversation` will use this environment variable securely on the server.
 
 ## File Naming Conventions
 
@@ -496,8 +516,9 @@ Lightweight state management. Used by CVI components for shared state.
 - Check browser network tab for 404 errors
 
 ### Tavus API not working
-- Verify `VITE_TAVUS_API_KEY` is set in `.env`
+- Verify `TAVUS_API_KEY` is set in `.env` (local) or Vercel environment variables (production)
 - Check browser console for API errors
+- Check Vercel function logs for server-side errors
 - Verify API key is valid
 
 ### Styles not applying
