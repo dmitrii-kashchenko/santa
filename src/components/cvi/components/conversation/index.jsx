@@ -113,7 +113,7 @@ const MainVideo = React.memo(() => {
 	);
 });
 
-export const Conversation = React.memo(({ onLeave, conversationUrl, conversationId }) => {
+export const Conversation = React.memo(({ onLeave, conversationUrl, conversationId, locationData = null }) => {
 	const { joinCall, leaveCall, onAppMessage, sendAppMessage } = useCVICall();
 	const meetingState = useMeetingState();
 	const { hasMicError, microphones, cameras, currentMic, currentCam, setMicrophone, setCamera } = useDevices();
@@ -127,11 +127,16 @@ export const Conversation = React.memo(({ onLeave, conversationUrl, conversation
 	const micDropdownRef = useRef(null);
 	const videoDropdownRef = useRef(null);
 	const scoreContextSentRef = useRef(false);
+	const locationContextSentRef = useRef(false);
 	const echo30sSentRef = useRef(false);
 	const echo5sSentRef = useRef(false);
 	const echo30sIndexRef = useRef(0);
 	const echo5sIndexRef = useRef(0);
 
+	const handleLeave = useCallback(() => {
+		leaveCall();
+		onLeave();
+	}, [leaveCall, onLeave]);
 
 	// Track countdown timer (2 minutes)
 	useEffect(() => {
@@ -142,6 +147,9 @@ export const Conversation = React.memo(({ onLeave, conversationUrl, conversation
 			echo5sSentRef.current = false;
 			echo30sIndexRef.current = 0;
 			echo5sIndexRef.current = 0;
+			// Reset context flags when joining
+			scoreContextSentRef.current = false;
+			locationContextSentRef.current = false;
 			const interval = setInterval(() => {
 				setCountdown(prev => {
 					if (prev <= 1) {
@@ -267,6 +275,35 @@ export const Conversation = React.memo(({ onLeave, conversationUrl, conversation
 				}
 			}
 
+			// Send location context when replica is present (once per conversation)
+			if (eventType === 'system.replica_present' && !locationContextSentRef.current && conversationId && locationData) {
+				try {
+					const city = locationData.city || 'Unknown';
+					const region = locationData.region || 'Unknown';
+					const country = locationData.country || 'Unknown';
+					const countryCode = locationData.countryCode || 'Unknown';
+					const timezone = locationData.timezone || 'Unknown';
+					const locationContext = `User location information: The user is located in ${city}, ${region}, ${country} (${countryCode}). Timezone: ${timezone}.`;
+
+					if (sendAppMessage) {
+						sendAppMessage({
+							message_type: "conversation",
+							event_type: "conversation.append_llm_context",
+							conversation_id: conversationId,
+							properties: {
+								context: locationContext,
+							},
+						});
+						locationContextSentRef.current = true;
+						console.log('[Conversation] Location context sent:', locationContext);
+					} else {
+						console.error('[Conversation] sendAppMessage is not available!');
+					}
+				} catch (error) {
+					console.error('[Conversation] Error sending location context:', error);
+				}
+			}
+
 			// Try different paths to get the utterance text
 			const utteranceText =
 				event?.data?.text ||
@@ -306,7 +343,7 @@ export const Conversation = React.memo(({ onLeave, conversationUrl, conversation
 				unsubscribe();
 			}
 		};
-	}, [onAppMessage, sendAppMessage, conversationId, processMessage]);
+	}, [onAppMessage, sendAppMessage, conversationId, processMessage, locationData]);
 
 	// Close dropdowns when clicking outside
 	useEffect(() => {
@@ -350,11 +387,6 @@ export const Conversation = React.memo(({ onLeave, conversationUrl, conversation
 			joinCall({ url: conversationUrl });
 		}
 	}, [conversationUrl, joinCall]);
-
-	const handleLeave = useCallback(() => {
-		leaveCall();
-		onLeave();
-	}, [leaveCall, onLeave]);
 
 	const handleVideoContainerClick = () => {
 		setIsToolbarVisible(prev => !prev);

@@ -19,7 +19,8 @@ export const VideoCallWindow = ({
   conversationId,
   isCallEnded,
   setIsCallEnded,
-  windowRef
+  windowRef,
+  locationData
 }) => {
   const [showIntroVideo, setShowIntroVideo] = useState(true)
 
@@ -126,6 +127,7 @@ export const VideoCallWindow = ({
                       conversationUrl={conversationUrl}
                       conversationId={conversationId}
                       onLeave={handleConversationLeave}
+                      locationData={locationData}
                     />
                   </>
                 ) : (
