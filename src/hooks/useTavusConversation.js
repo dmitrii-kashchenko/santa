@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { getRandomGreeting } from '../utils/santaGreetings'
 
 /**
  * Custom hook for generating Tavus conversation URL
@@ -34,10 +35,15 @@ export const useTavusConversation = (isHairCheckComplete) => {
             return
           }
 
+          const customGreeting = getRandomGreeting()
+          console.log('[useTavusConversation] Selected greeting language:', customGreeting.substring(0, 50) + '...')
+
           console.log('[useTavusConversation] Making API request to Tavus...')
           const requestBody = {
             persona_id: 'pe6534e5245c',
-            conversation_name: 'Santa Call'
+            replica_id: 'rfe12d8b9597',
+            conversation_name: 'Santa Call',
+            custom_greeting: customGreeting
           }
           console.log('[useTavusConversation] Request body:', requestBody)
           
