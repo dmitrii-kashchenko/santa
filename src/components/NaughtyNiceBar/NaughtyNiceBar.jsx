@@ -59,9 +59,11 @@ const calculateWiggle = (isOptimistic, score, time, segmentIndex, fillPercent) =
 };
 
 export const NaughtyNiceBar = ({ score = 0 }) => {
-  const segmentCount = score / 2;
-  const isVeryNaughty = score <= VERY_NAUGHTY_THRESHOLD;
-  const isVeryNice = score >= VERY_NICE_THRESHOLD;
+  // Clamp score to valid range (-10 to +10)
+  const clampedScore = Math.max(-SEGMENT_COUNT, Math.min(SEGMENT_COUNT, score));
+  const segmentCount = clampedScore / 2;
+  const isVeryNaughty = clampedScore <= VERY_NAUGHTY_THRESHOLD;
+  const isVeryNice = clampedScore >= VERY_NICE_THRESHOLD;
 
   // State for wiggle animation
   const [time, setTime] = useState(0);
@@ -88,15 +90,15 @@ export const NaughtyNiceBar = ({ score = 0 }) => {
   }, []);
 
   const getSegmentState = (i) => {
-    const isEvenScore = score % 2 === 0;
+    const isEvenScore = clampedScore % 2 === 0;
     
     // Special case: score 0 - optimistically wiggle towards nice (first nice segment)
-    if (score === 0 && i === NAUGHTY_NICE_SPLIT) {
+    if (clampedScore === 0 && i === NAUGHTY_NICE_SPLIT) {
       return { active: true, fillPercent: 0, isOptimistic: true };
     }
     
     // Nice Side (Positive): Indices 5 to 9
-    if (score > 0) {
+    if (clampedScore > 0) {
       const startIndex = NAUGHTY_NICE_SPLIT;
       const endIndex = startIndex + segmentCount; // e.g. 5 + 5 = 10
       
@@ -110,13 +112,13 @@ export const NaughtyNiceBar = ({ score = 0 }) => {
       
       // For even positive scores, show the NEXT segment (right after filled ones) with optimistic wiggle
       // endIndex = 6 for score 2, so next segment is at index 6
-      if (isEvenScore && i === Math.floor(endIndex) && score < 10) {
+      if (isEvenScore && i === Math.floor(endIndex) && clampedScore < 10) {
         return { active: true, fillPercent: 0, isOptimistic: true };
       }
     }
     
     // Naughty Side (Negative): Indices 4 down to 0
-    else if (score < 0) {
+    else if (clampedScore < 0) {
       const startIndex = NAUGHTY_NICE_SPLIT - 1;
       const absCount = Math.abs(segmentCount);
       const endIndex = startIndex - absCount; // e.g. 4 - 5 = -1
@@ -145,7 +147,7 @@ export const NaughtyNiceBar = ({ score = 0 }) => {
     <div 
       className={styles.container}
       role="meter"
-      aria-valuenow={score}
+      aria-valuenow={clampedScore}
       aria-valuemin={-SEGMENT_COUNT}
       aria-valuemax={SEGMENT_COUNT}
       aria-label="Naughty or Nice Score"
@@ -154,7 +156,7 @@ export const NaughtyNiceBar = ({ score = 0 }) => {
         {Array.from({ length: SEGMENT_COUNT }).map((_, i) => {
           const { active, fillPercent, isOptimistic } = getSegmentState(i);
           const isNaughtySide = i < NAUGHTY_NICE_SPLIT;
-          const wiggle = calculateWiggle(isOptimistic, score, time, i, fillPercent);
+          const wiggle = calculateWiggle(isOptimistic, clampedScore, time, i, fillPercent);
           
           return (
             <div

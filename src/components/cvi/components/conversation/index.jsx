@@ -120,7 +120,7 @@ export const Conversation = React.memo(({ onLeave, conversationUrl, conversation
 	const { hasMicError, microphones, cameras, currentMic, currentCam, setMicrophone, setCamera } = useDevices();
 	const { isCamMuted, onToggleCamera } = useLocalCamera();
 	const { isMicMuted, onToggleMicrophone, localSessionId } = useLocalMicrophone();
-	const { currentScore, nicePercentage, processMessage } = useScoreTracking();
+	const { currentScore, processMessage } = useScoreTracking();
 	const [countdown, setCountdown] = useState(180); // 3 minutes = 180 seconds
 	const [showMicDropdown, setShowMicDropdown] = useState(false);
 	const [showVideoDropdown, setShowVideoDropdown] = useState(false);

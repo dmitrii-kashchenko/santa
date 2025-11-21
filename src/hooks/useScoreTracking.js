@@ -43,17 +43,19 @@ export function useScoreTracking(userId = DEFAULT_USER_ID, contextId = DEFAULT_C
 
 		// If tags were found, update the score
 		if (scoreChange !== 0) {
-			// Use current score from state instead of localStorage
-			const result = updateScore(
-				userId,
-				contextId,
-				scoreChange,
-				sessionStartScoreRef.current,
-				currentScore
-			);
-			setCurrentScore(result.totalScore);
-			const newPercentage = scoreToNicePercentage(result.totalScore);
-			setNicePercentage(newPercentage);
+			// Use functional update to get current score and update atomically
+			setCurrentScore((prevScore) => {
+				const result = updateScore(
+					userId,
+					contextId,
+					scoreChange,
+					sessionStartScoreRef.current,
+					prevScore
+				);
+				const newPercentage = scoreToNicePercentage(result.totalScore);
+				setNicePercentage(newPercentage);
+				return result.totalScore;
+			});
 		}
 
 		// Return message with tags removed for display
