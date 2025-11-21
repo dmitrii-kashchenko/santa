@@ -3,23 +3,28 @@ import { getRandomGreeting } from '../utils/santaGreetings'
 
 /**
  * Custom hook for generating Tavus conversation URL
- * Starts initializing when call is answered so it's ready by the time user joins
+ * Starts preloading when window is visible to optimize join times
  */
-export const useTavusConversation = (isAnswered) => {
+export const useTavusConversation = (isAnswered, shouldPreload = false) => {
   const [conversationUrl, setConversationUrl] = useState(null)
   const [conversationId, setConversationId] = useState(null)
+  const [isGenerating, setIsGenerating] = useState(false)
 
   // Reset conversationUrl and conversationId when call is not answered
   useEffect(() => {
     if (!isAnswered) {
       setConversationUrl(null)
       setConversationId(null)
+      setIsGenerating(false)
     }
   }, [isAnswered])
 
   useEffect(() => {
-    if (isAnswered && !conversationUrl) {
-      console.log('[useTavusConversation] Call answered, generating conversation URL...')
+    // Start generating if we should preload (window visible) or if call is answered
+    // Only generate once - if already generating or already have URL, skip
+    if ((shouldPreload || isAnswered) && !conversationUrl && !isGenerating) {
+      console.log('[useTavusConversation] Starting conversation generation (preload:', shouldPreload, 'answered:', isAnswered, ')')
+      setIsGenerating(true)
       const generateConversationUrl = async () => {
         try {
           // Try multiple ways to get the API key
@@ -91,12 +96,14 @@ export const useTavusConversation = (isAnswered) => {
         } catch (error) {
           console.error('[useTavusConversation] Error generating conversation URL:', error)
           console.error('[useTavusConversation] Error stack:', error.stack)
+        } finally {
+          setIsGenerating(false)
         }
       }
 
       generateConversationUrl()
     }
-  }, [isAnswered, conversationUrl])
+  }, [isAnswered, shouldPreload, conversationUrl, isGenerating])
 
   return { conversationUrl, conversationId }
 }
