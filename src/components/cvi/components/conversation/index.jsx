@@ -128,28 +128,6 @@ export const Conversation = React.memo(({ onLeave, conversationUrl, conversation
 	const videoDropdownRef = useRef(null);
 	const scoreContextSentRef = useRef(false);
 
-	console.log('[Conversation] Component rendered, conversationUrl:', conversationUrl);
-	console.log('[Conversation] Meeting state:', meetingState);
-	console.log('[Conversation] Has mic error:', hasMicError);
-	console.log('[Conversation] Score state:', {
-		currentScore,
-		nicePercentage,
-		expectedNiceSegments: Math.max(0, Math.min(10, currentScore)),
-		totalSegments: 10,
-	});
-
-	// Verify score context format on mount
-	useEffect(() => {
-		const scoreContext = getCurrentScoreContext('user', 'santa-call');
-		console.log('[Conversation] 🔍 Score context verification:', {
-			scoreContext,
-			expectedFormat: '<current_score>+0</current_score>',
-			hasOpeningTag: scoreContext.includes('<current_score>'),
-			hasClosingTag: scoreContext.includes('</current_score>'),
-			formatValid: scoreContext.includes('<current_score>') && scoreContext.includes('</current_score>'),
-			currentScore,
-		});
-	}, [currentScore]);
 
 	// Track countdown timer (2 minutes)
 	useEffect(() => {
@@ -183,27 +161,10 @@ export const Conversation = React.memo(({ onLeave, conversationUrl, conversation
 	// "Add <+> for positive behavior, <-> for negative behavior. Tags are invisible to users."
 	useEffect(() => {
 		if (!onAppMessage) {
-			console.log('[Conversation] onAppMessage not available, skipping Tavus CVI event listeners');
 			return;
 		}
 
-		console.log('[Conversation] Setting up Tavus CVI event listeners for score tracking');
-
 		const unsubscribe = onAppMessage((event) => {
-			// Log full event structure for debugging
-			console.log('[Conversation] 🔍 FULL EVENT:', {
-				eventType: event?.data?.event_type || 'NO_EVENT_TYPE',
-				message_type: event?.data?.message_type || 'NO_MESSAGE_TYPE',
-				role: event?.data?.properties?.role || event?.data?.role || 'NO_ROLE',
-				hasText: !!(event?.data?.text || event?.data?.utterance || event?.data?.transcript || event?.data?.content || event?.data?.properties?.text || event?.data?.properties?.speech || event?.data?.properties?.utterance),
-				text: event?.data?.text || event?.data?.utterance || event?.data?.transcript || 'NO TEXT',
-				properties: event?.data?.properties,
-				fullData: event?.data,
-			});
-
-			// Log raw event structure
-			console.log('[Conversation] 📦 RAW EVENT:', JSON.stringify(event, null, 2));
-
 			const { data } = event;
 			const eventType = data?.event_type || '';
 
@@ -219,15 +180,6 @@ export const Conversation = React.memo(({ onLeave, conversationUrl, conversation
 			if (eventType === 'system.replica_present' && !scoreContextSentRef.current && conversationId) {
 				const scoreContext = getCurrentScoreContext('user', 'santa-call');
 
-				// Verify score context format
-				console.log('[Conversation] 📤 Attempting to send score context:', {
-					scoreContext,
-					conversationId,
-					hasSendAppMessage: !!sendAppMessage,
-					expectedFormat: '<current_score>+0</current_score>',
-					matches: scoreContext.includes('<current_score>') && scoreContext.includes('</current_score>'),
-				});
-
 				if (sendAppMessage) {
 					sendAppMessage({
 						message_type: "conversation",
@@ -238,9 +190,8 @@ export const Conversation = React.memo(({ onLeave, conversationUrl, conversation
 						},
 					});
 					scoreContextSentRef.current = true;
-					console.log('[Conversation] ✅ Score context sent successfully:', scoreContext);
 				} else {
-					console.error('[Conversation] ❌ sendAppMessage is not available!');
+					console.error('[Conversation] sendAppMessage is not available!');
 				}
 			}
 
@@ -265,14 +216,6 @@ export const Conversation = React.memo(({ onLeave, conversationUrl, conversation
 				event?.role ||
 				'';
 
-			console.log('[Conversation] 📝 Extracted:', {
-				utteranceText: utteranceText ? utteranceText.substring(0, 200) : 'NO TEXT',
-				role,
-				hasTags: utteranceText ? (utteranceText.includes('<+>') || utteranceText.includes('<->')) : false,
-				isUtteranceEvent,
-				eventType,
-			});
-
 			// Only process replica (AI) utterances, not user messages
 			// Check both role and event type to catch all possible utterance events
 			if (
@@ -281,40 +224,12 @@ export const Conversation = React.memo(({ onLeave, conversationUrl, conversation
 				typeof utteranceText === 'string' &&
 				utteranceText.length > 0
 			) {
-				console.log('[Conversation] 📝 Processing replica utterance:', {
-					eventType,
-					role,
-					utteranceLength: utteranceText.length,
-					preview: utteranceText.substring(0, 200),
-					hasPlus: utteranceText.includes('<+>'),
-					hasMinus: utteranceText.includes('<->'),
-					fullText: utteranceText, // Log full text to see if tags are present
-				});
-
 				// Process message - this extracts tags, updates score, and returns clean text
-				const cleanText = processMessage(utteranceText);
-
-				// The score has been updated automatically by processMessage
-				// You can use cleanText if you need to display it somewhere
-				console.log('[Conversation] ✅ Message processed:', {
-					originalLength: utteranceText.length,
-					cleanLength: cleanText.length,
-					tagsRemoved: utteranceText.length !== cleanText.length,
-				});
-			} else {
-				console.log('[Conversation] ⏭️ Skipping event - not a replica utterance:', {
-					role,
-					hasText: !!utteranceText,
-					isUtteranceEvent,
-					eventType,
-				});
+				processMessage(utteranceText);
 			}
 		});
 
-		console.log('[Conversation] Tavus CVI event listeners registered');
-
 		return () => {
-			console.log('[Conversation] Cleaning up Tavus CVI event listeners');
 			if (unsubscribe) {
 				unsubscribe();
 			}
@@ -347,31 +262,24 @@ export const Conversation = React.memo(({ onLeave, conversationUrl, conversation
 	};
 
 	useEffect(() => {
-		console.log('[Conversation] Meeting state changed:', meetingState);
 		if (meetingState === 'error') {
 			console.error('[Conversation] Meeting state is error, calling onLeave');
 			onLeave();
 		}
 		// Detect when call ends
 		if (meetingState === 'left-meeting' || meetingState === 'ended') {
-			console.log('[Conversation] Call ended, meeting state:', meetingState);
 			onLeave();
 		}
 	}, [meetingState, onLeave]);
 
 	// Initialize call when conversation is available
 	useEffect(() => {
-		console.log('[Conversation] useEffect triggered, conversationUrl:', conversationUrl);
 		if (conversationUrl) {
-			console.log('[Conversation] Calling joinCall with URL:', conversationUrl);
 			joinCall({ url: conversationUrl });
-		} else {
-			console.warn('[Conversation] No conversationUrl provided, cannot join call');
 		}
 	}, [conversationUrl, joinCall]);
 
 	const handleLeave = useCallback(() => {
-		console.log('[Conversation] Handle leave called');
 		leaveCall();
 		onLeave();
 	}, [leaveCall, onLeave]);
@@ -521,55 +429,76 @@ export const Conversation = React.memo(({ onLeave, conversationUrl, conversation
 						<div className={styles.naughtyNiceContainer}>
 							{Array.from({ length: 10 }).map((_, i) => {
 								// Calculate segments based on score (-10 to +10)
-								// Score 0 = 0 nice segments, 0 naughty segments (neutral)
-								// Positive scores: nice segments from middle (index 5) to the right
-								// Negative scores: naughty segments from middle-1 (index 4) to the left
+								// Move 0.5 segments for each 10% of the range (every 2 points)
+								// Formula: segments = score / 2 (so score 10 = 5 segments, score -10 = 5 segments)
+								// Score 0 = 0 segments, Score 2 = 1 segment, Score 4 = 2 segments, Score 10 = 5 segments
 								const totalSegments = 10;
 								const middlePoint = totalSegments / 2; // 5
 
-								const isNiceSegment = (i) => {
+								// Calculate how many segments to show (can be fractional)
+								// Every 2 points = 1 segment, so score 10 = 5 segments (full nice side)
+								const segmentCount = currentScore / 2;
+
+								const getSegmentState = (i) => {
 									if (currentScore > 0) {
 										// For positive scores, light up segments from the middle (index 5) to the right
-										return i >= middlePoint && i < (middlePoint + currentScore);
-									}
-									return false;
-								};
-
-								const isNaughtySegment = (i) => {
-									if (currentScore < 0) {
+										const startIndex = middlePoint;
+										const endIndex = startIndex + segmentCount;
+										
+										// Check if this segment is in the range [startIndex, endIndex)
+										if (i < startIndex || i >= Math.ceil(endIndex)) {
+											return { isNice: false, isNaughty: false, opacity: 1 };
+										}
+										
+										// Check if this is the last segment and it's partial
+										// The last segment is at Math.floor(endIndex) if endIndex is fractional
+										if (endIndex % 1 !== 0 && i === Math.floor(endIndex)) {
+											// Partial segment - use opacity
+											const partialAmount = endIndex % 1;
+											return { isNice: true, isNaughty: false, opacity: partialAmount };
+										}
+										
+										// Full segment
+										return { isNice: true, isNaughty: false, opacity: 1 };
+									} else if (currentScore < 0) {
 										// For negative scores, light up segments from the middle-1 (index 4) to the left
-										// Score -1: index 4
-										// Score -2: indices 4, 3
-										// Score -10: indices 4, 3, 2, 1, 0, -1, -2, -3, -4, -5 (clamped to 0-4)
-										return i < middlePoint && i >= (middlePoint + currentScore);
+										const startIndex = middlePoint - 1; // Start from index 4
+										const absSegmentCount = Math.abs(segmentCount);
+										const endIndex = startIndex - absSegmentCount;
+										
+										// Range is (endIndex, startIndex] - segments from endIndex to startIndex
+										// For endIndex = 3.5: (3.5, 4] → index 4 at 50% opacity
+										// For endIndex = 3: (3, 4] → indices 3 and 4 full
+										// For endIndex = 2.5: (2.5, 4] → index 3 at 50%, indices 3 and 4 full
+										if (i <= Math.floor(endIndex) || i > startIndex) {
+											return { isNice: false, isNaughty: false, opacity: 1 };
+										}
+										
+										// Check if this is the leftmost segment and it's partial
+										// The leftmost segment is at Math.ceil(endIndex) if endIndex is fractional
+										if (endIndex % 1 !== 0 && i === Math.ceil(endIndex)) {
+											// Partial segment - use opacity
+											const partialAmount = 1 - (endIndex % 1);
+											return { isNice: false, isNaughty: true, opacity: partialAmount };
+										}
+										
+										// Full segment
+										return { isNice: false, isNaughty: true, opacity: 1 };
 									}
-									return false;
+									
+									// Score 0 - neutral
+									return { isNice: false, isNaughty: false, opacity: 1 };
 								};
 
-								const isNice = isNiceSegment(i);
-								const isNaughty = isNaughtySegment(i);
-								
-								// Log on first render to debug
-								if (i === 0) {
-									const niceSegments = currentScore > 0 ? Math.min(5, currentScore) : 0;
-									const naughtySegments = currentScore < 0 ? Math.min(5, -currentScore) : 0;
-									console.log('[Conversation] Rendering naughty/nice bar:', {
-										currentScore,
-										niceSegments,
-										naughtySegments,
-										middlePoint,
-										segmentStates: Array.from({ length: 10 }).map((_, idx) => ({
-											index: idx,
-											isNice: isNiceSegment(idx),
-											isNaughty: isNaughtySegment(idx),
-										})),
-									});
-								}
+								const segmentState = getSegmentState(i);
 								
 								return (
 									<div
 										key={i}
-										className={`${styles.segment} ${isNice ? styles.segmentNice : isNaughty ? styles.segmentNaughty : ''}`}
+										className={`${styles.segment} ${segmentState.isNice ? styles.segmentNice : segmentState.isNaughty ? styles.segmentNaughty : ''}`}
+										style={{
+											opacity: segmentState.isNice || segmentState.isNaughty ? segmentState.opacity : 1,
+										}}
 									/>
 								);
 							})}

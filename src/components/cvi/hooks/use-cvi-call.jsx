@@ -5,11 +5,8 @@ export const useCVICall = () => {
 	const daily = useDaily();
 	const appMessageHandlersRef = useRef(new Set());
 
-	console.log('[useCVICall] Daily instance:', daily ? 'exists' : 'null');
-
 	const joinCall = useCallback(
 		({ url }) => {
-			console.log('[useCVICall] joinCall called with URL:', url);
 			if (!daily) {
 				console.error('[useCVICall] Daily instance is null, cannot join call');
 				return;
@@ -18,7 +15,6 @@ export const useCVICall = () => {
 				console.error('[useCVICall] No URL provided to joinCall');
 				return;
 			}
-			console.log('[useCVICall] Calling daily.join with URL:', url);
 			try {
 				daily.join({
 					url: url,
@@ -30,7 +26,6 @@ export const useCVICall = () => {
 						},
 					},
 				});
-				console.log('[useCVICall] daily.join called successfully');
 			} catch (error) {
 				console.error('[useCVICall] Error calling daily.join:', error);
 			}
@@ -39,7 +34,6 @@ export const useCVICall = () => {
 	);
 
 	const leaveCall = useCallback(() => {
-		console.log('[useCVICall] leaveCall called');
 		daily?.leave();
 	}, [daily]);
 
@@ -48,7 +42,6 @@ export const useCVICall = () => {
 		if (!daily) return;
 
 		const handleAppMessage = (event) => {
-			console.log('[useCVICall] App message received:', event);
 			// Call all registered handlers
 			appMessageHandlersRef.current.forEach((handler) => {
 				try {
@@ -67,7 +60,6 @@ export const useCVICall = () => {
 	}, [daily]);
 
 	const onAppMessage = useCallback((handler) => {
-		console.log('[useCVICall] Registering app message handler');
 		appMessageHandlersRef.current.add(handler);
 		return () => {
 			appMessageHandlersRef.current.delete(handler);
@@ -80,7 +72,6 @@ export const useCVICall = () => {
 				console.error('[useCVICall] Cannot send app message: Daily instance not available');
 				return;
 			}
-			console.log('[useCVICall] Sending app message:', message);
 			try {
 				daily.sendAppMessage(message, '*');
 			} catch (error) {

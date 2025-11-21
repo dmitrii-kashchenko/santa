@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import {
 	extractScoreTags,
 	getStoredScore,
@@ -22,15 +22,9 @@ export function useScoreTracking(userId = DEFAULT_USER_ID, contextId = DEFAULT_C
 
 	// Initialize score when component mounts
 	useEffect(() => {
-		console.log('[useScoreTracking] Initializing score tracking:', { userId, contextId });
 		const storedScore = getStoredScore(userId, contextId);
 		sessionStartScoreRef.current = storedScore;
 		const initialPercentage = scoreToNicePercentage(storedScore);
-		console.log('[useScoreTracking] Initial score state:', {
-			storedScore,
-			nicePercentage: initialPercentage,
-			sessionStartScore: sessionStartScoreRef.current,
-		});
 		setCurrentScore(storedScore);
 		setNicePercentage(initialPercentage);
 	}, [userId, contextId]);
@@ -40,58 +34,32 @@ export function useScoreTracking(userId = DEFAULT_USER_ID, contextId = DEFAULT_C
 	 * @param {string} messageText - Message text that may contain score tags
 	 * @returns {string} - Message text with tags removed (for display)
 	 */
-	const processMessage = (messageText) => {
+	const processMessage = useCallback((messageText) => {
 		if (!messageText || typeof messageText !== 'string') {
-			console.log('[useScoreTracking] processMessage - Invalid message text:', messageText);
 			return messageText;
 		}
-
-		console.log('[useScoreTracking] processMessage - Processing message:', {
-			messageLength: messageText.length,
-			preview: messageText.substring(0, 100),
-		});
 
 		// Extract score tags
 		const scoreChange = extractScoreTags(messageText);
 
-		console.log('[useScoreTracking] processMessage - Score change extracted:', {
-			scoreChange,
-			hasTags: scoreChange !== 0,
-		});
-
 		// If tags were found, update the score
 		if (scoreChange !== 0) {
-			console.log('[useScoreTracking] processMessage - Updating score...');
+			// Get current score from storage to avoid stale closure
+			const currentStoredScore = getStoredScore(userId, contextId);
 			const result = updateScore(
 				userId,
 				contextId,
 				scoreChange,
 				sessionStartScoreRef.current
 			);
-			console.log('[useScoreTracking] processMessage - Score updated:', {
-				previousScore: currentScore,
-				newTotalScore: result.totalScore,
-				sessionScore: result.sessionScore,
-				sessionScoreChange: result.sessionScoreChange,
-			});
 			setCurrentScore(result.totalScore);
 			const newPercentage = scoreToNicePercentage(result.totalScore);
-			console.log('[useScoreTracking] processMessage - UI updating:', {
-				previousPercentage: nicePercentage,
-				newPercentage,
-			});
 			setNicePercentage(newPercentage);
-		} else {
-			console.log('[useScoreTracking] processMessage - No score change, skipping update');
 		}
 
 		// Return message with tags removed for display
-		const cleanText = messageText.replace(/<\+>/g, '').replace(/<->/g, '');
-		if (cleanText !== messageText) {
-			console.log('[useScoreTracking] processMessage - Tags removed from display text');
-		}
-		return cleanText;
-	};
+		return messageText.replace(/<\+>/g, '').replace(/<->/g, '');
+	}, [userId, contextId]);
 
 	return {
 		currentScore,
