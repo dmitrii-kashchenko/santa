@@ -127,12 +127,21 @@ export const Conversation = React.memo(({ onLeave, conversationUrl, conversation
 	const micDropdownRef = useRef(null);
 	const videoDropdownRef = useRef(null);
 	const scoreContextSentRef = useRef(false);
+	const echo30sSentRef = useRef(false);
+	const echo5sSentRef = useRef(false);
+	const echo30sIndexRef = useRef(0);
+	const echo5sIndexRef = useRef(0);
 
 
 	// Track countdown timer (2 minutes)
 	useEffect(() => {
 		if (meetingState === 'joined-meeting') {
 			setCountdown(120); // Reset to 2 minutes when joined
+			// Reset echo message flags when joining
+			echo30sSentRef.current = false;
+			echo5sSentRef.current = false;
+			echo30sIndexRef.current = 0;
+			echo5sIndexRef.current = 0;
 			const interval = setInterval(() => {
 				setCountdown(prev => {
 					if (prev <= 1) {
@@ -146,6 +155,61 @@ export const Conversation = React.memo(({ onLeave, conversationUrl, conversation
 			setCountdown(120);
 		}
 	}, [meetingState]);
+
+	// Echo interactions at 30s and 5s
+	useEffect(() => {
+		if (!sendAppMessage || !conversationId || meetingState !== 'joined-meeting') {
+			return;
+		}
+
+		const messages30s = [
+			"Almost time for me to head out, quick, what's your Christmas wish?",
+			"My sleigh leaves soon! Tell me something festive you're excited about this year.",
+			"I have to leave shortly, has this year treated you well?",
+			"I'll be on my way soon, don't forget to spread a little Christmas cheer!"
+		];
+
+		const messages5s = [
+			"I have to dash off now, take care!",
+			"Ho ho ho! I must be on my way, until next time!"
+		];
+
+		// Send echo at 30 seconds
+		if (countdown === 30 && !echo30sSentRef.current) {
+			const message = messages30s[echo30sIndexRef.current];
+			sendAppMessage({
+				message_type: "conversation",
+				event_type: "conversation.echo",
+				conversation_id: conversationId,
+				properties: {
+					modality: "text",
+					text: message,
+					done: "true"
+				}
+			});
+			echo30sSentRef.current = true;
+			// Rotate to next message for next conversation
+			echo30sIndexRef.current = (echo30sIndexRef.current + 1) % messages30s.length;
+		}
+
+		// Send echo at 5 seconds
+		if (countdown === 5 && !echo5sSentRef.current) {
+			const message = messages5s[echo5sIndexRef.current];
+			sendAppMessage({
+				message_type: "conversation",
+				event_type: "conversation.echo",
+				conversation_id: conversationId,
+				properties: {
+					modality: "text",
+					text: message,
+					done: "true"
+				}
+			});
+			echo5sSentRef.current = true;
+			// Rotate to next message for next conversation
+			echo5sIndexRef.current = (echo5sIndexRef.current + 1) % messages5s.length;
+		}
+	}, [countdown, sendAppMessage, conversationId, meetingState]);
 
 	// Listen for Tavus CVI events to process AI responses
 	// The processMessage function extracts score tags (<+> and <->) from text
