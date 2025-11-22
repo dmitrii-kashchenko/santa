@@ -20,7 +20,9 @@ export const VideoCallWindow = ({
   error,
   isCallEnded,
   setIsCallEnded,
-  windowRef
+  windowRef,
+  selectedLanguage,
+  onLanguageChange
 }) => {
   const [showIntroVideo, setShowIntroVideo] = useState(true)
 
@@ -116,6 +118,8 @@ export const VideoCallWindow = ({
                   onCancel={handleCancel}
                   conversationUrl={conversationUrl}
                   conversationId={conversationId}
+                  selectedLanguage={selectedLanguage}
+                  onLanguageChange={onLanguageChange}
                 />
               </div>
             ) : isCallEnded ? (

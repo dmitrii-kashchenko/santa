@@ -416,6 +416,12 @@
 	flex-shrink: 0;
 }
 
+.languageSelectorWrapper {
+	width: 100%;
+	display: flex;
+	justify-content: flex-start;
+}
+
 .legalText {
 	font-family: 'FK Raster Grotesk Compact', sans-serif;
 	font-size: 11px;

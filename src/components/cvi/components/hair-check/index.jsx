@@ -5,6 +5,7 @@ import { useLocalCamera } from '../../hooks/use-local-camera';
 import { useLocalMicrophone } from '../../hooks/use-local-microphone';
 import { useCVICall } from '../../hooks/use-cvi-call';
 import { useReplicaIDs } from '../../hooks/use-replica-ids';
+import { LanguageSelector } from '../../../LanguageSelector/LanguageSelector';
 
 import styles from './hair-check.module.css';
 
@@ -29,7 +30,7 @@ const JoinBtn = ({ onClick, disabled, className, loading, loadingText }) => {
 	);
 };
 
-export const HairCheck = memo(({ isJoinBtnLoading = false, onJoin, onCancel, conversationUrl, conversationId }) => {
+export const HairCheck = memo(({ isJoinBtnLoading = false, onJoin, onCancel, conversationUrl, conversationId, selectedLanguage, onLanguageChange }) => {
 	const daily = useDaily();
 	const { localSessionId, isCamMuted, onToggleCamera, isCamReady } = useLocalCamera();
 	const { isMicMuted, onToggleMicrophone } = useLocalMicrophone();
@@ -255,6 +256,12 @@ export const HairCheck = memo(({ isJoinBtnLoading = false, onJoin, onCancel, con
 						<div className={styles.statusIndicator}>
 							<div className={styles.statusIcon}></div>
 							<span>SANTA HAS JOINED THE SESSION</span>
+						</div>
+						<div className={styles.languageSelectorWrapper}>
+							<LanguageSelector
+								selectedLanguage={selectedLanguage}
+								onLanguageChange={onLanguageChange}
+							/>
 						</div>
 						{isPermissionsDenied ? (
 							<button

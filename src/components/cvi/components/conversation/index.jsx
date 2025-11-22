@@ -184,7 +184,7 @@ export const Conversation = React.memo(({ onLeave, conversationUrl, conversation
 
 		// Send time check utterance event at 60 seconds
 		if (countdown === 60 && !timeCheck60sSentRef.current) {
-			const timeCheckText = "<time_check>";
+			const timeCheckText = "<time_check> Do not respond to this message. Instead, take this as an indicator that we have 60 seconds left in this conversation and we should execute our end call process. Make a natural transition to end the call accounting for what the user is about to say next <time_check>";
 			
 			sendAppMessage({
 				message_type: "conversation",

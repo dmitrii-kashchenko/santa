@@ -308,6 +308,17 @@ const LANGUAGE_MAP = {
   'hu': 'hungarian',
   'vi': 'vietnamese',
   'no': 'norwegian',
+  // Additional language codes (will default to English if not in SANTA_GREETINGS)
+  'bn': 'english', // Bengali - not in greetings, defaults to English
+  'th': 'english', // Thai - not in greetings, defaults to English
+  'he': 'english', // Hebrew - not in greetings, defaults to English
+  'ka': 'english', // Georgian - not in greetings, defaults to English
+  'te': 'english', // Telugu - not in greetings, defaults to English
+  'gu': 'english', // Gujarati - not in greetings, defaults to English
+  'kn': 'english', // Kannada - not in greetings, defaults to English
+  'ml': 'english', // Malayalam - not in greetings, defaults to English
+  'mr': 'english', // Marathi - not in greetings, defaults to English
+  'pa': 'english', // Punjabi - not in greetings, defaults to English
 };
 
 export function getLanguageFromBrowser() {
@@ -321,8 +332,17 @@ export function getLanguageFromBrowser() {
   return LANGUAGE_MAP[langCode] || LANGUAGE_MAP[browserLang] || 'english';
 }
 
-export function getRandomGreeting(language = null) {
-  const lang = language || getLanguageFromBrowser();
+export function getRandomGreeting(languageCode = null) {
+  let lang = 'english';
+  
+  if (languageCode) {
+    // If a language code is provided, map it to the language name
+    lang = LANGUAGE_MAP[languageCode] || 'english';
+  } else {
+    // Otherwise, use browser language detection
+    lang = getLanguageFromBrowser();
+  }
+  
   const greetings = SANTA_GREETINGS[lang] || SANTA_GREETINGS['english'];
   
   if (!greetings || greetings.length === 0) {

@@ -5,11 +5,12 @@ import { getRandomGreeting } from '../utils/santaGreetings'
  * Custom hook for generating Tavus conversation URL
  * Starts preloading when window is visible to optimize join times
  */
-export const useTavusConversation = (isAnswered, shouldPreload = false) => {
+export const useTavusConversation = (isAnswered, shouldPreload = false, selectedLanguage = 'en') => {
   const [conversationUrl, setConversationUrl] = useState(null)
   const [conversationId, setConversationId] = useState(null)
   const [isGenerating, setIsGenerating] = useState(false)
   const [error, setError] = useState(null)
+  const [lastLanguage, setLastLanguage] = useState(selectedLanguage)
 
   // Reset conversationUrl and conversationId when call is not answered
   useEffect(() => {
@@ -18,8 +19,22 @@ export const useTavusConversation = (isAnswered, shouldPreload = false) => {
       setConversationId(null)
       setIsGenerating(false)
       setError(null)
+      setLastLanguage(selectedLanguage)
     }
   }, [isAnswered])
+
+  // Reset conversation if language changes before answering
+  useEffect(() => {
+    if (!isAnswered && lastLanguage !== selectedLanguage) {
+      if (conversationUrl) {
+        console.log('[useTavusConversation] Language changed from', lastLanguage, 'to', selectedLanguage, '- resetting conversation')
+        setConversationUrl(null)
+        setConversationId(null)
+        setError(null)
+      }
+      setLastLanguage(selectedLanguage)
+    }
+  }, [selectedLanguage, isAnswered, lastLanguage, conversationUrl])
 
   useEffect(() => {
     // Start generating if we should preload (window visible) or if call is answered
@@ -30,8 +45,9 @@ export const useTavusConversation = (isAnswered, shouldPreload = false) => {
       setIsGenerating(true)
       const generateConversationUrl = async () => {
         try {
-          const customGreeting = getRandomGreeting()
-          console.log('[useTavusConversation] Selected greeting language:', customGreeting.substring(0, 50) + '...')
+          const customGreeting = getRandomGreeting(selectedLanguage)
+          console.log('[useTavusConversation] Selected language code:', selectedLanguage)
+          console.log('[useTavusConversation] Generated greeting (first 100 chars):', customGreeting.substring(0, 100) + '...')
 
           console.log('[useTavusConversation] Making API request to serverless function...')
           
@@ -120,7 +136,7 @@ export const useTavusConversation = (isAnswered, shouldPreload = false) => {
 
       generateConversationUrl()
     }
-  }, [isAnswered, shouldPreload, conversationUrl, isGenerating])
+  }, [isAnswered, shouldPreload, conversationUrl, isGenerating, selectedLanguage])
 
   return { conversationUrl, conversationId, error }
 }
