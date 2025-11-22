@@ -42,3 +42,9 @@
     0 4px 8px rgba(0, 0, 0, 0.6);
 }
 
+.errorText {
+  color: #FFD700;
+  font-size: 20px;
+  font-weight: bold;
+}
+

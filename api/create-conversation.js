@@ -1,3 +1,5 @@
+import { checkBotId } from 'botid/server'
+
 export default async function handler(req, res) {
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', process.env.FRONTEND_URL || '*')
@@ -22,6 +24,12 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
+  // BotID verification
+  const verification = await checkBotId()
+  if (verification.isBot) {
+    return res.status(403).json({ error: 'Access denied' })
+  }
+
   try {
     const { custom_greeting } = req.body
 
@@ -37,7 +45,7 @@ export default async function handler(req, res) {
     const requestBody = {
       custom_greeting: custom_greeting || '',
       enable_dynamic_greeting: true,
-      persona_id: 'p5d219ef4ec5',
+      persona_id: 'p3e9c9c16ddb',
       replica_id: 'r69a7ee6ca38',
       conversation_name: 'Santa Call'
     }

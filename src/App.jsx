@@ -24,7 +24,7 @@ function App() {
 
   // Preload conversation when window is visible (not minimized) to optimize join times
   const shouldPreloadConversation = !isMinimized
-  const { conversationUrl, conversationId } = useTavusConversation(isAnswered, shouldPreloadConversation)
+  const { conversationUrl, conversationId, error } = useTavusConversation(isAnswered, shouldPreloadConversation)
 
   const handleSantaIconClick = () => {
     if (isMinimized) {
@@ -88,6 +88,7 @@ function App() {
         setIsHairCheckComplete={setIsHairCheckComplete}
         conversationUrl={conversationUrl}
         conversationId={conversationId}
+        error={error}
         isCallEnded={isCallEnded}
         setIsCallEnded={setIsCallEnded}
         windowRef={windowRef}

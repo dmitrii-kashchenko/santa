@@ -9,6 +9,7 @@ export const useTavusConversation = (isAnswered, shouldPreload = false) => {
   const [conversationUrl, setConversationUrl] = useState(null)
   const [conversationId, setConversationId] = useState(null)
   const [isGenerating, setIsGenerating] = useState(false)
+  const [error, setError] = useState(null)
 
   // Reset conversationUrl and conversationId when call is not answered
   useEffect(() => {
@@ -16,6 +17,7 @@ export const useTavusConversation = (isAnswered, shouldPreload = false) => {
       setConversationUrl(null)
       setConversationId(null)
       setIsGenerating(false)
+      setError(null)
     }
   }, [isAnswered])
 
@@ -71,10 +73,18 @@ export const useTavusConversation = (isAnswered, shouldPreload = false) => {
               errorData = { error: errorText }
             }
             console.error('[useTavusConversation] Failed to generate conversation URL:', response.status, errorData)
+            
+            // Handle 400 status code (max concurrent users)
+            if (response.status === 400) {
+              setError('maxConcurrency')
+            } else {
+              setError('unknown')
+            }
           }
         } catch (error) {
           console.error('[useTavusConversation] Error generating conversation URL:', error)
           console.error('[useTavusConversation] Error stack:', error.stack)
+          setError('unknown')
         } finally {
           setIsGenerating(false)
         }
@@ -84,6 +94,6 @@ export const useTavusConversation = (isAnswered, shouldPreload = false) => {
     }
   }, [isAnswered, shouldPreload, conversationUrl, isGenerating])
 
-  return { conversationUrl, conversationId }
+  return { conversationUrl, conversationId, error }
 }
 

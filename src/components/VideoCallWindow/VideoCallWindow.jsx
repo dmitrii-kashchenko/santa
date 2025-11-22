@@ -17,6 +17,7 @@ export const VideoCallWindow = ({
   setIsHairCheckComplete,
   conversationUrl,
   conversationId,
+  error,
   isCallEnded,
   setIsCallEnded,
   windowRef
@@ -129,7 +130,7 @@ export const VideoCallWindow = ({
                     />
                   </>
                 ) : (
-                  <ConnectingScreen />
+                  <ConnectingScreen error={error} />
                 )}
               </div>
             )}
