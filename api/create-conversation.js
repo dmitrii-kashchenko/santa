@@ -45,6 +45,9 @@ export default async function handler(req, res) {
   try {
     const { custom_greeting } = req.body
 
+    // Log the greeting being received (first 100 chars for debugging)
+    console.log('[create-conversation] Custom greeting received:', custom_greeting ? `${custom_greeting.substring(0, 100)}... (length: ${custom_greeting.length})` : 'none')
+
     // Get API key from server-side environment variable (not exposed to client)
     const apiKey = process.env.TAVUS_API_KEY
 
@@ -54,13 +57,24 @@ export default async function handler(req, res) {
     }
 
     // Prepare request body for Tavus API
+    // Only include custom_greeting if it's provided and not empty
     const requestBody = {
-      custom_greeting: custom_greeting || '',
-      enable_dynamic_greeting: true,
+      enable_dynamic_greeting: false,
       persona_id: 'p3bb4745d4f9',
       replica_id: 'r3fbe3834a3e',
       conversation_name: 'Santa Call'
     }
+    
+    // Only add custom_greeting if it's provided and not empty
+    if (custom_greeting && custom_greeting.trim().length > 0) {
+      requestBody.custom_greeting = custom_greeting
+    }
+
+    // Log the request body being sent (first 100 chars of greeting)
+    console.log('[create-conversation] Sending to Tavus API:', {
+      ...requestBody,
+      custom_greeting: requestBody.custom_greeting ? `${requestBody.custom_greeting.substring(0, 100)}... (length: ${requestBody.custom_greeting.length})` : 'not included'
+    })
 
     // Make request to Tavus API
     const response = await fetch('https://tavusapi.com/v2/conversations', {

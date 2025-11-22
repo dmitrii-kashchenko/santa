@@ -91,9 +91,6 @@ export const HairCheck = memo(({ isJoinBtnLoading = false, onJoin, onCancel, con
 	const santaReady = hasReplica;
 	const canProceed = cameraReady && santaReady;
 
-	// Show loading state while Santa is spinning up
-	const isWaitingForSanta = cameraReady && !santaReady && conversationUrl;
-
 	// Close dropdowns when clicking outside
 	useEffect(() => {
 		const handleClickOutside = (event) => {
@@ -269,8 +266,7 @@ export const HairCheck = memo(({ isJoinBtnLoading = false, onJoin, onCancel, con
 							</button>
 						) : (
 							<JoinBtn
-								loading={isJoinBtnLoading || isWaitingForSanta}
-								loadingText={isWaitingForSanta ? "Santa's on his way..." : undefined}
+								loading={isJoinBtnLoading}
 								disabled={!canProceed}
 								className={styles.buttonJoinDesktop}
 								onClick={onJoin}
