@@ -2,6 +2,7 @@ import React, { useEffect, useCallback, useState, useRef, useImperativeHandle, f
 import {
 	DailyAudioTrack,
 	DailyVideo,
+	useDaily,
 	useDevices,
 	useLocalSessionId,
 	useMeetingState,
@@ -116,7 +117,8 @@ const MainVideo = React.memo(() => {
 });
 
 export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, conversationId, selectedLanguage = 'en', shouldJoin = false }, ref) => {
-	const { joinCall, leaveCall, onAppMessage, sendAppMessage } = useCVICall();
+	const { joinCall, leaveCall, endCall, onAppMessage, sendAppMessage } = useCVICall();
+	const daily = useDaily();
 	const meetingState = useMeetingState();
 	const { hasMicError, microphones, cameras, currentMic, currentCam, setMicrophone, setCamera } = useDevices();
 	const { isCamMuted, onToggleCamera } = useLocalCamera();
@@ -138,16 +140,26 @@ export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, c
 	const callStartTimeRef = useRef(null);
 	const usageRecordedRef = useRef(false);
 	const hasJoinedRef = useRef(false);
+	const muteTimeoutRef = useRef(null);
+	const hasUnmutedAfterJoinRef = useRef(false);
+	const replicaPresentProcessedRef = useRef(false);
 
 	const handleLeave = useCallback(() => {
 		leaveCall();
 		onLeave();
 	}, [leaveCall, onLeave]);
 
-	// Expose leave function to parent via ref
+	const handleEnd = useCallback(() => {
+		// End the call (not just leave) - this ends it for all participants
+		endCall();
+		onLeave();
+	}, [endCall, onLeave]);
+
+	// Expose leave and end functions to parent via ref
 	useImperativeHandle(ref, () => ({
-		leave: handleLeave
-	}), [handleLeave]);
+		leave: handleLeave,
+		end: handleEnd
+	}), [handleLeave, handleEnd]);
 
 	// Fetch remaining time and initialize countdown timer
 	// Only start timer when both participant has joined AND replica is present
@@ -202,9 +214,9 @@ export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, c
 	useEffect(() => {
 		if (countdown === 0 && meetingState === 'joined-meeting' && isReplicaPresent) {
 			console.log('[Conversation] Countdown reached 0, ending call');
-			handleLeave();
+			handleEnd();
 		}
-	}, [countdown, meetingState, isReplicaPresent, handleLeave]);
+	}, [countdown, meetingState, isReplicaPresent, handleEnd]);
 
 	// Send time check utterance event at 60 seconds (or when 60 seconds remain)
 	useEffect(() => {
@@ -324,30 +336,35 @@ export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, c
 
 			// Replica is present - mark it and send score context (once per conversation)
 			if (eventType === 'system.replica_present') {
-				console.log('[Conversation] Replica is present - participant can now be considered fully joined');
-				setIsReplicaPresent(true);
-				
-				if (!scoreContextSentRef.current && conversationId) {
-					try {
-						const scoreContext = getCurrentScoreContext('user', 'santa-call', currentScore);
+				// Only process this event once - it may fire multiple times
+				if (!replicaPresentProcessedRef.current) {
+					console.log('[Conversation] Replica is present - participant can now be considered fully joined');
+					setIsReplicaPresent(true);
+					replicaPresentProcessedRef.current = true;
+					
+					if (!scoreContextSentRef.current && conversationId) {
+						try {
+							const scoreContext = getCurrentScoreContext('user', 'santa-call', currentScore);
 
-						if (sendAppMessage) {
-							sendAppMessage({
-								message_type: "conversation",
-								event_type: "conversation.respond",
-								conversation_id: conversationId,
-								properties: {
-									text: scoreContext,
-								},
-							});
-							scoreContextSentRef.current = true;
-						} else {
-							console.error('[Conversation] sendAppMessage is not available!');
+							if (sendAppMessage) {
+								sendAppMessage({
+									message_type: "conversation",
+									event_type: "conversation.respond",
+									conversation_id: conversationId,
+									properties: {
+										text: scoreContext,
+									},
+								});
+								scoreContextSentRef.current = true;
+							} else {
+								console.error('[Conversation] sendAppMessage is not available!');
+							}
+						} catch (error) {
+							console.error('[Conversation] Error sending score context:', error);
 						}
-					} catch (error) {
-						console.error('[Conversation] Error sending score context:', error);
 					}
 				}
+				// Silently ignore duplicate events - no need to log them
 			}
 
 			// Try different paths to get the utterance text
@@ -447,39 +464,87 @@ export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, c
 			console.error('[Conversation] Meeting state is error, calling onLeave');
 			setIsReplicaPresent(false);
 			hasJoinedRef.current = false;
+			hasUnmutedAfterJoinRef.current = false;
+			if (muteTimeoutRef.current) {
+				clearTimeout(muteTimeoutRef.current);
+				muteTimeoutRef.current = null;
+			}
 			onLeave();
 		}
 		// Detect when call ends
 		if (meetingState === 'left-meeting' || meetingState === 'ended') {
 			setIsReplicaPresent(false);
 			hasJoinedRef.current = false;
+			hasUnmutedAfterJoinRef.current = false;
+			if (muteTimeoutRef.current) {
+				clearTimeout(muteTimeoutRef.current);
+				muteTimeoutRef.current = null;
+			}
 			onLeave();
 		}
 	}, [meetingState, onLeave]);
 
 	// Participant only joins when "JOIN VIDEO CALL" is pressed
 	// According to Tavus docs, replica automatically joins the Daily.co room when conversation is created
+	// The greeting fires when participant joins, so we must wait until "JOIN VIDEO CALL" is pressed
 	// Flow: 
 	// 1. Conversation is created when "answer his call" is pressed → replica joins automatically (Tavus handles this)
 	// 2. User goes through hair check
 	// 3. User clicks "JOIN VIDEO CALL" → shouldJoin becomes true
 	// 4. Participant joins the call (daily.join) - replica should already be waiting
-	// 5. We wait for system.replica_present event to confirm replica is in the call
-	// 6. Only after replica is present do we consider participant "fully joined"
-	// 7. Greeting fires when participant joins (controlled by Tavus)
+	// 5. Greeting fires when participant joins (controlled by Tavus)
+	// 6. We wait for system.replica_present event to confirm replica is in the call
+	// 7. Only after replica is present do we consider participant "fully joined"
 	useEffect(() => {
 		if (conversationUrl && shouldJoin && !hasJoinedRef.current) {
 			console.log('[Conversation] Joining call - user clicked JOIN VIDEO CALL button');
 			console.log('[Conversation] Replica should already be in the room (joined when conversation was created)');
+			console.log('[Conversation] Greeting will fire when participant joins');
 			joinCall({ url: conversationUrl });
 			hasJoinedRef.current = true;
+			hasUnmutedAfterJoinRef.current = false;
+			replicaPresentProcessedRef.current = false;
 			// Reset replica present state when joining new call
 			setIsReplicaPresent(false);
 		} else if (!shouldJoin || !conversationUrl) {
 			// Reset join flag if shouldJoin becomes false (e.g., call ended/cancelled) or conversationUrl changes
 			hasJoinedRef.current = false;
+			hasUnmutedAfterJoinRef.current = false;
+			replicaPresentProcessedRef.current = false;
+			// Clear mute timeout if call is cancelled
+			if (muteTimeoutRef.current) {
+				clearTimeout(muteTimeoutRef.current);
+				muteTimeoutRef.current = null;
+			}
 		}
 	}, [conversationUrl, shouldJoin, joinCall]);
+
+	// Mute participant for first 6 seconds after joining
+	useEffect(() => {
+		if (!daily || meetingState !== 'joined-meeting' || !hasJoinedRef.current || hasUnmutedAfterJoinRef.current) {
+			return;
+		}
+
+		// Mute audio immediately when participant joins
+		console.log('[Conversation] Participant joined - muting audio for first 6 seconds');
+		daily.setLocalAudio(false);
+
+		// Unmute after 6 seconds
+		muteTimeoutRef.current = setTimeout(() => {
+			console.log('[Conversation] 6 seconds elapsed - unmuting participant audio');
+			daily.setLocalAudio(true);
+			hasUnmutedAfterJoinRef.current = true;
+			muteTimeoutRef.current = null;
+		}, 6000);
+
+		// Cleanup timeout on unmount or if call ends
+		return () => {
+			if (muteTimeoutRef.current) {
+				clearTimeout(muteTimeoutRef.current);
+				muteTimeoutRef.current = null;
+			}
+		};
+	}, [meetingState, daily]);
 
 	const handleVideoContainerClick = () => {
 		setIsToolbarVisible(prev => !prev);

@@ -37,6 +37,11 @@ export const useCVICall = () => {
 		daily?.leave();
 	}, [daily]);
 
+	const endCall = useCallback(() => {
+		// End the call for all participants (not just leave)
+		daily?.end();
+	}, [daily]);
+
 	// Set up app message listener
 	useEffect(() => {
 		if (!daily) return;
@@ -81,5 +86,5 @@ export const useCVICall = () => {
 		[daily]
 	);
 
-	return { joinCall, leaveCall, onAppMessage, sendAppMessage };
+	return { joinCall, leaveCall, endCall, onAppMessage, sendAppMessage };
 };

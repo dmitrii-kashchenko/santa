@@ -64,11 +64,11 @@ export const VideoCallWindow = ({
 
   const handleClose = (e) => {
     e.stopPropagation()
-    // If call is active, end it; otherwise just minimize
+    // If call is active, end it (not just leave); otherwise just minimize
     if (isAnswered && isHairCheckComplete && !isCallEnded) {
-      // Trigger the conversation to leave the call
-      if (conversationRef.current) {
-        conversationRef.current.leave()
+      // End the call (ends for all participants, not just leave)
+      if (conversationRef.current && conversationRef.current.end) {
+        conversationRef.current.end()
       } else {
         // Fallback: just set call ended
         handleConversationLeave()
