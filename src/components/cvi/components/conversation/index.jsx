@@ -132,6 +132,8 @@ export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, c
 	const echo5sSentRef = useRef(false);
 	const timeCheck60sSentRef = useRef(false);
 	const echo5sIndexRef = useRef(0);
+	const isReplicaSpeakingRef = useRef(false);
+	const timeCheck60sPendingRef = useRef(false);
 
 	const handleLeave = useCallback(() => {
 		leaveCall();
@@ -150,9 +152,12 @@ export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, c
 			// Reset echo message flags when joining
 			echo5sSentRef.current = false;
 			timeCheck60sSentRef.current = false;
+			timeCheck60sPendingRef.current = false;
 			echo5sIndexRef.current = 0;
 			// Reset context flags when joining
 			scoreContextSentRef.current = false;
+			// Reset replica speaking state
+			isReplicaSpeakingRef.current = false;
 			const interval = setInterval(() => {
 				setCountdown(prev => {
 					if (prev <= 1) {
@@ -182,19 +187,27 @@ export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, c
 		}
 
 		// Send time check utterance event at 60 seconds
-		if (countdown === 60 && !timeCheck60sSentRef.current) {
-			const timeCheckText = "<time_check> Do not respond to this message. Instead, take this as an indicator that we have 60 seconds left in this conversation and we should execute our end call process. Make a natural transition to end the call accounting for what the user is about to say next <time_check>";
-			
-			sendAppMessage({
-				message_type: "conversation",
-				event_type: "conversation.respond",
-				conversation_id: conversationId,
-				properties: {
-					text: timeCheckText
-				}
-			});
-			timeCheck60sSentRef.current = true;
-			console.log('[Conversation] Time check utterance sent at 60 seconds');
+		if (countdown === 60 && !timeCheck60sSentRef.current && !timeCheck60sPendingRef.current) {
+			// Check if replica is currently speaking
+			if (isReplicaSpeakingRef.current) {
+				// Replica is speaking, wait until it finishes
+				timeCheck60sPendingRef.current = true;
+				console.log('[Conversation] Time check at 60 seconds - waiting for replica to finish speaking');
+			} else {
+				// Replica is not speaking, send immediately
+				const timeCheckText = "<time_check> Do not respond to this message. Instead, take this as an indicator that we have 60 seconds left in this conversation and we should execute our end call process. Make a natural transition to end the call accounting for what the user is about to say next <time_check>";
+				
+				sendAppMessage({
+					message_type: "conversation",
+					event_type: "conversation.respond",
+					conversation_id: conversationId,
+					properties: {
+						text: timeCheckText
+					}
+				});
+				timeCheck60sSentRef.current = true;
+				console.log('[Conversation] Time check utterance sent at 60 seconds');
+			}
 		}
 	}, [countdown, sendAppMessage, conversationId, meetingState]);
 
@@ -245,6 +258,34 @@ export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, c
 		const unsubscribe = onAppMessage((event) => {
 			const { data } = event;
 			const eventType = data?.event_type || '';
+
+			// Monitor replica speaking events
+			if (eventType === 'replica.start_speaking' || eventType === 'conversation.replica.start_speaking') {
+				isReplicaSpeakingRef.current = true;
+				console.log('[Conversation] Replica started speaking');
+			}
+
+			if (eventType === 'replica.end_speaking' || eventType === 'conversation.replica.end_speaking') {
+				isReplicaSpeakingRef.current = false;
+				console.log('[Conversation] Replica finished speaking');
+				
+				// If we were waiting to send the 60s time check, send it now
+				if (timeCheck60sPendingRef.current && !timeCheck60sSentRef.current && sendAppMessage && conversationId) {
+					const timeCheckText = "<time_check> Do not respond to this message. Instead, take this as an indicator that we have 60 seconds left in this conversation and we should execute our end call process. Make a natural transition to end the call accounting for what the user is about to say next <time_check>";
+					
+					sendAppMessage({
+						message_type: "conversation",
+						event_type: "conversation.respond",
+						conversation_id: conversationId,
+						properties: {
+							text: timeCheckText
+						}
+					});
+					timeCheck60sSentRef.current = true;
+					timeCheck60sPendingRef.current = false;
+					console.log('[Conversation] Time check utterance sent at 60 seconds (after replica finished speaking)');
+				}
+			}
 
 			// Check for more specific event types that might contain utterances
 			const isUtteranceEvent =
