@@ -47,6 +47,10 @@
   letter-spacing: 0;
   color: #2C2C2C;
   pointer-events: none;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  white-space: normal;
+  min-width: 0;
 }
 
 .languageButtonArrow {
