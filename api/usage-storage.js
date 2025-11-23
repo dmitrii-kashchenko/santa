@@ -54,7 +54,16 @@ async function getUsageFromKV(key) {
   if (!kv) return null;
   try {
     const data = await kv.get(key);
-    return data ? JSON.parse(data) : null;
+    if (!data) return null;
+    
+    // KV might return an object directly or a JSON string
+    if (typeof data === 'string') {
+      return JSON.parse(data);
+    } else if (typeof data === 'object') {
+      // Already parsed, return as-is
+      return data;
+    }
+    return null;
   } catch (error) {
     console.warn('[usage-storage] Failed to get from KV:', error.message);
     return null;
@@ -64,6 +73,7 @@ async function getUsageFromKV(key) {
 async function setUsageInKV(key, value) {
   if (!kv) return false;
   try {
+    // KV can store objects directly, but stringify to be safe
     await kv.set(key, JSON.stringify(value));
     return true;
   } catch (error) {
