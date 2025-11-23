@@ -48,6 +48,11 @@ export function getOrCreateUserId(req, res) {
   
   let userId = foundUserId
   
+  // Debug: Log what we found
+  if (hasCookieHeader && !foundUserId) {
+    console.warn('[cookie-utils] Cookie header exists but santa_user_id not found. Available cookies:', Object.keys(cookies))
+  }
+  
   // If no user ID exists, generate one and set it in a cookie
   if (!userId) {
     userId = generateUserId()
@@ -55,20 +60,26 @@ export function getOrCreateUserId(req, res) {
     // Set httpOnly cookie for security (prevents client-side JavaScript access)
     // Vercel uses VERCEL_ENV to indicate environment (production, preview, development)
     const isProduction = process.env.VERCEL_ENV === 'production' || process.env.NODE_ENV === 'production'
-    const isHttps = req.headers['x-forwarded-proto'] === 'https' || process.env.VERCEL_ENV === 'production'
     
-    // Build cookie options
-    // For production (Vercel): Use SameSite=None with Secure (required for serverless functions)
-    // For local development: Use SameSite=Lax (works with HTTP)
+    // Detect HTTPS - check multiple sources for Vercel
+    const protocol = req.headers['x-forwarded-proto'] || (req.headers['x-forwarded-ssl'] === 'on' ? 'https' : 'http')
+    const isHttps = protocol === 'https' || process.env.VERCEL_ENV === 'production' || req.url?.startsWith('https://')
+    
+    // For Vercel production: Always use SameSite=None with Secure (required for cross-origin/serverless)
+    // For local development: Use SameSite=Lax (works with HTTP localhost)
+    // Note: SameSite=None REQUIRES Secure flag
+    const useSecureCookie = isHttps || isProduction
     
     const cookieOptions = [
       `${cookieName}=${encodeURIComponent(userId)}`,
       'HttpOnly',
-      isHttps ? 'SameSite=None' : 'SameSite=Lax', // None for HTTPS, Lax for HTTP
-      ...(isHttps ? ['Secure'] : []), // Secure only for HTTPS
+      useSecureCookie ? 'SameSite=None' : 'SameSite=Lax',
+      ...(useSecureCookie ? ['Secure'] : []), // Secure required when SameSite=None
       'Path=/',
       `Max-Age=${60 * 60 * 24 * 365}`, // 1 year
     ].join('; ')
+    
+    console.log('[cookie-utils] Cookie config - Protocol:', protocol, 'isHttps:', isHttps, 'isProduction:', isProduction, 'useSecureCookie:', useSecureCookie)
     
     // Set cookie header - MUST be set before res.json() is called
     // Use appendHeader to ensure it's added even if other headers exist
