@@ -14,7 +14,6 @@ export const GeoblockedScreen = () => {
         <div className={styles.errorMessage}>
           <h1 className={styles.errorTitle}>Sorry, this service is not available in your region</h1>
           <p className={styles.errorDescription}>
-            We're working to bring Santa to more places around the world. 
           </p>
         </div>
       </div>

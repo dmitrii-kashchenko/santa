@@ -116,7 +116,7 @@ const MainVideo = React.memo(() => {
 	);
 });
 
-export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, conversationId, selectedLanguage = 'en', shouldJoin = false }, ref) => {
+export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, conversationId, selectedLanguage = 'en', shouldJoin = false, countdown = 180, setCountdown }, ref) => {
 	const { joinCall, leaveCall, endCall, onAppMessage, sendAppMessage } = useCVICall();
 	const daily = useDaily();
 	const meetingState = useMeetingState();
@@ -125,7 +125,6 @@ export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, c
 	const { isMicMuted, onToggleMicrophone, localSessionId } = useLocalMicrophone();
 	const { currentScore, processMessage } = useScoreTracking();
 	const replicaIds = useReplicaIDs();
-	const [countdown, setCountdown] = useState(180); // Will be updated with remaining time
 	const [showMicDropdown, setShowMicDropdown] = useState(false);
 	const [showVideoDropdown, setShowVideoDropdown] = useState(false);
 	const [isToolbarVisible, setIsToolbarVisible] = useState(true);
@@ -147,16 +146,55 @@ export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, c
 	const waitingForReplicaRef = useRef(false);
 	const replicaCheckIntervalRef = useRef(null);
 
+	const recordUsageIfNeeded = useCallback(() => {
+		if (callStartTimeRef.current && !usageRecordedRef.current) {
+			const callDuration = Math.floor((Date.now() - callStartTimeRef.current) / 1000);
+			const actualDuration = Math.min(callDuration, 180); // Cap at 3 minutes
+			
+			console.log('[Conversation] Recording usage - Duration:', actualDuration, 'seconds, Call start:', new Date(callStartTimeRef.current).toISOString());
+			
+			// Record usage to backend
+			fetch('/api/record-usage', {
+				method: 'POST',
+				credentials: 'include',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					durationSeconds: actualDuration
+				})
+			})
+				.then(res => {
+					if (!res.ok) {
+						return res.json().then(err => Promise.reject(new Error(err.message || `HTTP ${res.status}`)));
+					}
+					return res.json();
+				})
+				.then(data => {
+					console.log('[Conversation] Usage recorded successfully:', data);
+					usageRecordedRef.current = true;
+					callStartTimeRef.current = null;
+				})
+				.catch(error => {
+					console.error('[Conversation] Failed to record usage:', error);
+					usageRecordedRef.current = true;
+					callStartTimeRef.current = null;
+				});
+		}
+	}, []);
+
 	const handleLeave = useCallback(() => {
+		recordUsageIfNeeded();
 		leaveCall();
 		onLeave();
-	}, [leaveCall, onLeave]);
+	}, [leaveCall, onLeave, recordUsageIfNeeded]);
 
 	const handleEnd = useCallback(() => {
+		recordUsageIfNeeded();
 		// End the call (not just leave) - this ends it for all participants
 		endCall();
 		onLeave();
-	}, [endCall, onLeave]);
+	}, [endCall, onLeave, recordUsageIfNeeded]);
 
 	// Expose leave and end functions to parent via ref
 	useImperativeHandle(ref, () => ({
@@ -164,29 +202,18 @@ export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, c
 		end: handleEnd
 	}), [handleLeave, handleEnd]);
 
-	// Fetch remaining time and initialize countdown timer
-	// Only start timer when both participant has joined AND replica is present
+	// Record call start time when meeting is joined (before replica is present)
 	useEffect(() => {
-		if (meetingState === 'joined-meeting' && isReplicaPresent) {
-			// Fetch remaining time from usage API
-			fetch('/api/check-usage', {
-				credentials: 'include'
-			})
-				.then(res => res.json())
-				.then(data => {
-					const remainingSeconds = Math.max(0, data.remainingSeconds || 180);
-					setCountdown(remainingSeconds);
-					console.log('[Conversation] Initialized timer with remaining time:', remainingSeconds, 'seconds');
-				})
-				.catch(error => {
-					console.error('[Conversation] Failed to fetch remaining time:', error);
-					// Fallback to 180 seconds if API call fails
-					setCountdown(180);
-				});
-			
-			// Record call start time
+		if (meetingState === 'joined-meeting' && !callStartTimeRef.current) {
 			callStartTimeRef.current = Date.now();
 			usageRecordedRef.current = false;
+			console.log('[Conversation] Call started at:', new Date(callStartTimeRef.current).toISOString());
+		}
+	}, [meetingState]);
+
+	// Reset flags when replica appears (timer is already initialized during haircheck)
+	useEffect(() => {
+		if (meetingState === 'joined-meeting' && isReplicaPresent) {
 			// Reset echo message flags when joining
 			echo5sSentRef.current = false;
 			timeCheck60sSentRef.current = false;
@@ -196,20 +223,6 @@ export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, c
 			scoreContextSentRef.current = false;
 			// Reset replica speaking state
 			isReplicaSpeakingRef.current = false;
-			
-			// Start countdown timer
-			const interval = setInterval(() => {
-				setCountdown(prev => {
-					if (prev <= 1) {
-						return 0;
-					}
-					return prev - 1;
-				});
-			}, 1000);
-			
-			return () => clearInterval(interval);
-		} else {
-			setCountdown(180);
 		}
 	}, [meetingState, isReplicaPresent]);
 
@@ -443,6 +456,8 @@ export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, c
 			const callDuration = Math.floor((Date.now() - callStartTimeRef.current) / 1000);
 			const actualDuration = Math.min(callDuration, 180); // Cap at 3 minutes
 			
+			console.log('[Conversation] Recording usage - Duration:', actualDuration, 'seconds, Call start:', new Date(callStartTimeRef.current).toISOString());
+			
 			// Record usage to backend
 			fetch('/api/record-usage', {
 				method: 'POST',
@@ -453,18 +468,36 @@ export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, c
 				body: JSON.stringify({
 					durationSeconds: actualDuration
 				})
-			}).catch(error => {
-				console.error('[Conversation] Failed to record usage:', error);
-			});
-			
-			usageRecordedRef.current = true;
-			console.log('[Conversation] Recorded usage:', actualDuration, 'seconds');
+			})
+				.then(res => {
+					if (!res.ok) {
+						return res.json().then(err => Promise.reject(new Error(err.message || `HTTP ${res.status}`)));
+					}
+					return res.json();
+				})
+				.then(data => {
+					console.log('[Conversation] Usage recorded successfully:', data);
+					usageRecordedRef.current = true;
+					// Reset call start time for next call
+					callStartTimeRef.current = null;
+				})
+				.catch(error => {
+					console.error('[Conversation] Failed to record usage:', error);
+					// Still mark as recorded to prevent duplicate attempts
+					usageRecordedRef.current = true;
+					// Reset call start time for next call
+					callStartTimeRef.current = null;
+				});
+		} else if ((meetingState === 'left-meeting' || meetingState === 'ended' || meetingState === 'error') && !callStartTimeRef.current) {
+			// Call ended but no start time was recorded (shouldn't happen, but log it)
+			console.warn('[Conversation] Call ended but no start time was recorded');
 		}
 	}, [meetingState]);
 
 	useEffect(() => {
 		if (meetingState === 'error') {
 			console.error('[Conversation] Meeting state is error, calling onLeave');
+			recordUsageIfNeeded();
 			setIsReplicaPresent(false);
 			hasJoinedRef.current = false;
 			hasUnmutedAfterJoinRef.current = false;
@@ -476,6 +509,7 @@ export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, c
 		}
 		// Detect when call ends
 		if (meetingState === 'left-meeting' || meetingState === 'ended') {
+			recordUsageIfNeeded();
 			setIsReplicaPresent(false);
 			hasJoinedRef.current = false;
 			hasUnmutedAfterJoinRef.current = false;
@@ -485,7 +519,7 @@ export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, c
 			}
 			onLeave();
 		}
-	}, [meetingState, onLeave]);
+	}, [meetingState, onLeave, recordUsageIfNeeded]);
 
 	// Participant only joins when "JOIN VIDEO CALL" is pressed AND replica is confirmed to be ready
 	// According to Tavus docs, replica automatically joins the Daily.co room when conversation is created

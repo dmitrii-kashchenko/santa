@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useWindowPosition } from '../../hooks/useWindowPosition'
 import { HairCheck } from '../cvi/components/hair-check'
 import { Conversation } from '../cvi/components/conversation'
@@ -25,7 +25,9 @@ export const VideoCallWindow = ({
   onLanguageChange
 }) => {
   const [showIntroVideo, setShowIntroVideo] = useState(true)
+  const [countdown, setCountdown] = useState(180)
   const conversationRef = useRef(null)
+  const timerIntervalRef = useRef(null)
 
   const { position, windowSize, isDragging, handleMouseDown } = useWindowPosition({
     isLoading,
@@ -45,6 +47,12 @@ export const VideoCallWindow = ({
 
   const handleCancel = () => {
     setIsAnswered(false)
+    // Cleanup timer when cancelling
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current)
+      timerIntervalRef.current = null
+    }
+    setCountdown(180)
   }
 
   const handleJoin = () => {
@@ -55,7 +63,78 @@ export const VideoCallWindow = ({
     setIsCallEnded(false)
     setIsHairCheckComplete(false)
     setIsAnswered(false)
+    // Reset timer
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current)
+      timerIntervalRef.current = null
+    }
+    setCountdown(180)
   }
+
+  // Initialize timer when haircheck is shown (when user answers the call)
+  useEffect(() => {
+    if (isAnswered && !isHairCheckComplete && !timerIntervalRef.current) {
+      // Fetch remaining time from usage API
+      fetch('/api/check-usage', {
+        credentials: 'include'
+      })
+        .then(res => res.json())
+        .then(data => {
+          const remainingSeconds = Math.max(0, data.remainingSeconds || 180)
+          setCountdown(remainingSeconds)
+          console.log('[VideoCallWindow] Initialized timer during haircheck with remaining time:', remainingSeconds, 'seconds')
+          
+          // Start countdown timer (only if not already running)
+          if (!timerIntervalRef.current) {
+            timerIntervalRef.current = setInterval(() => {
+              setCountdown(prev => {
+                if (prev <= 1) {
+                  return 0
+                }
+                return prev - 1
+              })
+            }, 1000)
+          }
+        })
+        .catch(error => {
+          console.error('[VideoCallWindow] Failed to fetch remaining time:', error)
+          // Fallback to 180 seconds if API call fails
+          setCountdown(180)
+          
+          // Start countdown timer even if API call fails (only if not already running)
+          if (!timerIntervalRef.current) {
+            timerIntervalRef.current = setInterval(() => {
+              setCountdown(prev => {
+                if (prev <= 1) {
+                  return 0
+                }
+                return prev - 1
+              })
+            }, 1000)
+          }
+        })
+    }
+  }, [isAnswered, isHairCheckComplete])
+
+  // Cleanup timer when call ends or is cancelled
+  useEffect(() => {
+    if (!isAnswered || isCallEnded) {
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current)
+        timerIntervalRef.current = null
+      }
+    }
+  }, [isAnswered, isCallEnded])
+
+  // Cleanup timer on component unmount
+  useEffect(() => {
+    return () => {
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current)
+        timerIntervalRef.current = null
+      }
+    }
+  }, [])
 
   const handleConversationLeave = () => {
     console.log('[VideoCallWindow] Conversation onLeave called')
@@ -64,7 +143,7 @@ export const VideoCallWindow = ({
 
   const handleClose = (e) => {
     e.stopPropagation()
-    // If call is active, end it (not just leave); otherwise just minimize
+    // If call is active, end it (not just leave) and close window
     if (isAnswered && isHairCheckComplete && !isCallEnded) {
       // End the call (ends for all participants, not just leave)
       if (conversationRef.current && conversationRef.current.end) {
@@ -73,9 +152,9 @@ export const VideoCallWindow = ({
         // Fallback: just set call ended
         handleConversationLeave()
       }
-    } else {
-      setIsMinimized(true)
     }
+    // Always minimize/close the window
+    setIsMinimized(true)
   }
 
   if (isMinimized) {
@@ -148,6 +227,8 @@ export const VideoCallWindow = ({
                       onLeave={handleConversationLeave}
                       selectedLanguage={selectedLanguage}
                       shouldJoin={isHairCheckComplete}
+                      countdown={countdown}
+                      setCountdown={setCountdown}
                     />
                   </>
                 ) : (

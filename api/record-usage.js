@@ -1,7 +1,22 @@
 export default async function handler(req, res) {
   // Set CORS headers
-  res.setHeader('Access-Control-Allow-Origin', process.env.FRONTEND_URL || '*')
-  res.setHeader('Access-Control-Allow-Credentials', 'true')
+  // Cannot use '*' with credentials - must use specific origin
+  // For localhost/same-origin: derive from request URL if origin header is missing
+  let origin = req.headers.origin || process.env.FRONTEND_URL
+  
+  // If no origin header (same-origin request), try to derive from request
+  if (!origin && req.headers.host) {
+    const protocol = req.headers['x-forwarded-proto'] || 'http'
+    origin = `${protocol}://${req.headers.host}`
+  }
+  
+  if (origin) {
+    res.setHeader('Access-Control-Allow-Origin', origin)
+    res.setHeader('Access-Control-Allow-Credentials', 'true')
+  } else {
+    // Last resort: don't set credentials if we can't determine origin
+    res.setHeader('Access-Control-Allow-Origin', '*')
+  }
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
   res.setHeader('Cache-Control', 'no-store')
@@ -29,7 +44,11 @@ export default async function handler(req, res) {
     // Get user identifier from cookie (generates new one if doesn't exist)
     const identifier = getOrCreateUserId(req, res)
     
+    console.log('[record-usage] Recording session for user:', identifier.substring(0, 20) + '...', 'Duration:', durationSeconds, 'seconds')
+    
     const result = usageStorage.recordSession(identifier, durationSeconds)
+    
+    console.log('[record-usage] Session recorded - Used:', result.usedSeconds, 'Remaining:', result.remainingSeconds)
     
     return res.status(200).json({
       success: true,

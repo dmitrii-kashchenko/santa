@@ -38,8 +38,8 @@ export const useCVICall = () => {
 	}, [daily]);
 
 	const endCall = useCallback(() => {
-		// End the call for all participants (not just leave)
-		daily?.end();
+		// Leave the call (client-side participants can only leave, not end for all)
+		daily?.leave();
 	}, [daily]);
 
 	// Set up app message listener
