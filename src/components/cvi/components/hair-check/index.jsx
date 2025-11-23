@@ -1,12 +1,13 @@
 import React, { memo, useEffect, useState, useRef } from 'react';
 import { DailyVideo, useDaily, useDevices } from '@daily-co/daily-react';
+import { useTranslation } from '../../../../utils/translations';
 import { useStartHaircheck } from '../../hooks/use-start-haircheck';
 import { useLocalCamera } from '../../hooks/use-local-camera';
 import { useLocalMicrophone } from '../../hooks/use-local-microphone';
 
 import styles from './hair-check.module.css';
 
-const JoinBtn = ({ onClick, disabled, className, loading, loadingText }) => {
+const JoinBtn = ({ onClick, disabled, className, loading, loadingText, t }) => {
 	return (
 		<button
 			className={`${styles.buttonJoin} ${className || ''}`}
@@ -21,13 +22,14 @@ const JoinBtn = ({ onClick, disabled, className, loading, loadingText }) => {
 					alt="Video"
 					style={{ width: '16px', height: '16px', objectFit: 'contain', flexShrink: 0 }}
 				/>
-				<span>{loading ? (loadingText || 'Dialing in to the North Pole...') : 'JOIN VIDEO CALL'}</span>
+				<span>{loading ? (loadingText || t('dialingToNorthPole')) : t('joinVideoCall')}</span>
 			</div>
 		</button>
 	);
 };
 
-export const HairCheck = memo(({ isJoinBtnLoading = false, onJoin, onCancel, conversationUrl, conversationId }) => {
+export const HairCheck = memo(({ isJoinBtnLoading = false, onJoin, onCancel, conversationUrl, conversationId, selectedLanguage = 'en' }) => {
+	const t = useTranslation(selectedLanguage)
 	const daily = useDaily();
 	const { localSessionId, isCamMuted, onToggleCamera, isCamReady } = useLocalCamera();
 	const { isMicMuted, onToggleMicrophone } = useLocalMicrophone();
@@ -94,15 +96,15 @@ export const HairCheck = memo(({ isJoinBtnLoading = false, onJoin, onCancel, con
 
 	const getDescription = () => {
 		if (isPermissionsPrompt) {
-			return 'Make sure your camera and mic are ready!';
+			return t('cameraMicReady');
 		}
 		if (isPermissionsLoading) {
-			return 'Getting your camera and mic ready...';
+			return t('gettingCameraMicReady');
 		}
 		if (isPermissionsDenied) {
-			return 'Camera and mic access denied. Allow permissions to continue.';
+			return t('cameraMicDenied');
 		}
-		return "You're all set! Your device is ready.";
+		return t('deviceReady');
 	};
 	return (
 		<div className={styles.haircheckBlock}>
@@ -146,7 +148,7 @@ export const HairCheck = memo(({ isJoinBtnLoading = false, onJoin, onCancel, con
 									className={styles.iconImage}
 								/>
 							</span>
-							<span className={styles.controlText}>{isMicMuted ? 'MIC OFF' : 'MIC ON'}</span>
+							<span className={styles.controlText}>{isMicMuted ? t('micOff') : t('micOn')}</span>
 							<span 
 								className={styles.controlArrow}
 								onClick={(e) => {
@@ -193,7 +195,7 @@ export const HairCheck = memo(({ isJoinBtnLoading = false, onJoin, onCancel, con
 									className={styles.iconImage}
 								/>
 							</span>
-							<span className={styles.controlText}>{isCamMuted ? 'VIDEO OFF' : 'VIDEO ON'}</span>
+							<span className={styles.controlText}>{isCamMuted ? t('videoOff') : t('videoOn')}</span>
 							<span 
 								className={styles.controlArrow}
 								onClick={(e) => {
@@ -227,11 +229,11 @@ export const HairCheck = memo(({ isJoinBtnLoading = false, onJoin, onCancel, con
 			<div className={styles.haircheckSidebar}>
 				<div className={styles.haircheckSidebarContent}>
 					<div className={styles.haircheckContent}>
-						<h2 className={styles.sidebarTitle}>Meet Santa</h2>
-						<p className={styles.sidebarDescription}>He can see you, he can understand you, and he's excited to talk to you</p>
+						<h2 className={styles.sidebarTitle}>{t('meetSanta')}</h2>
+						<p className={styles.sidebarDescription}>{t('meetSantaDescription')}</p>
 						<div className={styles.statusIndicator}>
 							<div className={styles.statusIcon}></div>
-							<span>SANTA HAS JOINED THE SESSION</span>
+							<span>{t('santaHasJoined')}</span>
 						</div>
 						{isPermissionsDenied ? (
 							<button
@@ -239,7 +241,7 @@ export const HairCheck = memo(({ isJoinBtnLoading = false, onJoin, onCancel, con
 								onClick={onCancelHairCheck}
 								className={`${styles.buttonCancel} ${styles.buttonJoinDesktop}`}
 							>
-								Cancel
+								{t('cancel')}
 							</button>
 						) : (
 							<JoinBtn
@@ -247,10 +249,11 @@ export const HairCheck = memo(({ isJoinBtnLoading = false, onJoin, onCancel, con
 								disabled={false}
 								className={styles.buttonJoinDesktop}
 								onClick={onJoin}
+								t={t}
 							/>
 						)}
 						<p className={styles.legalText}>
-							By starting a conversation, I accept the Tavus Terms of Use and acknowledge the Privacy Policy.
+							{t('legalText')}
 						</p>
 					</div>
 				</div>

@@ -1,7 +1,10 @@
+import { useTranslation } from '../../utils/translations'
 import { ASSET_PATHS } from '../../utils/assetPaths'
 import styles from './CallEndedScreen.module.css'
 
-export const CallEndedScreen = ({ onContinue }) => {
+export const CallEndedScreen = ({ onContinue, selectedLanguage = 'en' }) => {
+  const t = useTranslation(selectedLanguage)
+  
   return (
     <div className={styles.callEndedContainer}>
       <video
@@ -15,16 +18,16 @@ export const CallEndedScreen = ({ onContinue }) => {
       </video>
       <div className={styles.callEndedContent}>
         <h1 className={styles.callEndedTitle}>
-          Santa is now a PAL!
+          {t('santaIsNowPal')}
         </h1>
         <p className={styles.callEndedSubtext}>
-          He can text, call, and talk face to face anytime. He can help make christmas lists, get you on the nice list, and spread christmas cheer.
+          {t('santaPalDescription')}
         </p>
         <button
           className={styles.callEndedCta}
           onClick={onContinue}
         >
-          Continue the Conversation
+          {t('continueConversation')}
         </button>
       </div>
     </div>

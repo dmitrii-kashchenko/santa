@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react'
+import { getTranslation } from './utils/translations'
 import './App.css'
 import { useAssetPreloader } from './hooks/useAssetPreloader'
 import { useGeoblockCheck } from './hooks/useGeoblockCheck'
@@ -51,12 +52,12 @@ function App() {
 
   // Show loading screen
   if (isLoading || isChecking) {
-    return <LoadingScreen />
+    return <LoadingScreen selectedLanguage={selectedLanguage} />
   }
 
   // Show geoblocked screen if user is geoblocked
   if (isGeoblocked || error === 'geoblocked') {
-    return <GeoblockedScreen />
+    return <GeoblockedScreen selectedLanguage={selectedLanguage} />
   }
 
   return (
@@ -65,7 +66,7 @@ function App() {
       
       <Header />
       
-      <HeroText />
+      <HeroText selectedLanguage={selectedLanguage} />
 
       <Footer 
         selectedLanguage={selectedLanguage}
@@ -76,14 +77,14 @@ function App() {
       <main className="main-content">
         <WindowIcon
           icon={ASSET_PATHS.images.santa}
-          title="SANTA"
+          title={getTranslation(selectedLanguage, 'santa')}
           isOpen={!isMinimized}
           onClick={handleSantaIconClick}
         />
 
         <WindowIcon
           icon={ASSET_PATHS.images.elf}
-          title="FLAPPY ELF"
+          title={getTranslation(selectedLanguage, 'flappyElf')}
           isOpen={!isFlappyMinimized}
           onClick={handleFlappyIconClick}
           position="flappy"
@@ -112,6 +113,7 @@ function App() {
         isMinimized={isFlappyMinimized}
         setIsMinimized={setIsFlappyMinimized}
         windowRef={flappyWindowRef}
+        selectedLanguage={selectedLanguage}
       />
     </div>
   )

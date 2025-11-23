@@ -116,7 +116,7 @@ const MainVideo = React.memo(() => {
 	);
 });
 
-export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, conversationId, selectedLanguage = 'en', shouldJoin = false, countdown = 180, setCountdown }, ref) => {
+export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, conversationId, selectedLanguage = 'en', shouldJoin = false, countdown = 180, setCountdown, onReplicaReady }, ref) => {
 	const { joinCall, leaveCall, endCall, onAppMessage, sendAppMessage } = useCVICall();
 	const daily = useDaily();
 	const meetingState = useMeetingState();
@@ -125,10 +125,13 @@ export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, c
 	const { isMicMuted, onToggleMicrophone, localSessionId } = useLocalMicrophone();
 	const { currentScore, processMessage } = useScoreTracking();
 	const replicaIds = useReplicaIDs();
+	const replicaId = replicaIds[0];
+	const videoState = useVideoTrack(replicaId);
 	const [showMicDropdown, setShowMicDropdown] = useState(false);
 	const [showVideoDropdown, setShowVideoDropdown] = useState(false);
 	const [isToolbarVisible, setIsToolbarVisible] = useState(true);
 	const [isReplicaPresent, setIsReplicaPresent] = useState(false);
+	const replicaReadyNotifiedRef = useRef(false);
 	const micDropdownRef = useRef(null);
 	const videoDropdownRef = useRef(null);
 	const scoreContextSentRef = useRef(false);
@@ -232,6 +235,15 @@ export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, c
 			isReplicaSpeakingRef.current = false;
 		}
 	}, [meetingState, isReplicaPresent]);
+
+	// Notify parent when replica is fully rendered and ready (has ID, is present, and video is not off)
+	useEffect(() => {
+		if (onReplicaReady && meetingState === 'joined-meeting' && replicaId && isReplicaPresent && videoState && !videoState.isOff && !replicaReadyNotifiedRef.current) {
+			console.log('[Conversation] Replica is fully rendered and ready - notifying parent to start timer');
+			replicaReadyNotifiedRef.current = true;
+			onReplicaReady();
+		}
+	}, [meetingState, replicaId, isReplicaPresent, videoState, onReplicaReady]);
 
 	// Automatically end call when countdown reaches 0
 	useEffect(() => {
@@ -508,6 +520,7 @@ export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, c
 			setIsReplicaPresent(false);
 			hasJoinedRef.current = false;
 			hasUnmutedAfterJoinRef.current = false;
+			replicaReadyNotifiedRef.current = false;
 			if (muteTimeoutRef.current) {
 				clearTimeout(muteTimeoutRef.current);
 				muteTimeoutRef.current = null;
@@ -520,6 +533,7 @@ export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, c
 			setIsReplicaPresent(false);
 			hasJoinedRef.current = false;
 			hasUnmutedAfterJoinRef.current = false;
+			replicaReadyNotifiedRef.current = false;
 			if (muteTimeoutRef.current) {
 				clearTimeout(muteTimeoutRef.current);
 				muteTimeoutRef.current = null;
@@ -847,7 +861,7 @@ export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, c
 
 				{/* Bottom Row: Naughty/Nice Slider */}
 				<div className={styles.footerControlsBottom}>
-					<NaughtyNiceBar score={currentScore} />
+					<NaughtyNiceBar score={currentScore} selectedLanguage={selectedLanguage} />
 
 					{/* Close Button */}
 					<button type="button" className={styles.leaveButton} onClick={handleLeave}>

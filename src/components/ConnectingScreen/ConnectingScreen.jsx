@@ -1,21 +1,24 @@
+import { useTranslation } from '../../utils/translations'
 import { ASSET_PATHS } from '../../utils/assetPaths'
 import styles from './ConnectingScreen.module.css'
 
-export const ConnectingScreen = ({ error }) => {
+export const ConnectingScreen = ({ error, selectedLanguage = 'en' }) => {
+  const t = useTranslation(selectedLanguage)
+  
   const getMessage = () => {
     if (error === 'dailyLimitReached') {
-      return "Sorry - Santa had to go back to his workshop. Come back again and he'll be ready to chat"
+      return t('santaWorkshopError')
     }
     if (error === 'maxConcurrency') {
-      return "Santa's busy with his elves, please try again later"
+      return t('santaBusyError')
     }
     if (error === 'apiError') {
-      return 'Unable to connect. Please try again later.'
+      return t('unableToConnect')
     }
     if (error === 'unknown') {
-      return 'Connection error. Please try again.'
+      return t('connectionError')
     }
-    return 'Connecting to the North Pole...'
+    return t('connectingToNorthPole')
   }
 
   return (

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { useTranslation } from '../../utils/translations'
 import FlappySanta from '../FlappySanta'
 import { isMobile } from '../../utils/windowUtils'
 import styles from './FlappyWindow.module.css'
@@ -6,8 +7,10 @@ import styles from './FlappyWindow.module.css'
 export const FlappyWindow = ({
   isMinimized,
   setIsMinimized,
-  windowRef
+  windowRef,
+  selectedLanguage = 'en'
 }) => {
+  const t = useTranslation(selectedLanguage)
   const [flappyPosition, setFlappyPosition] = useState({ x: 0, y: 0 })
   const [isFlappyDragging, setIsFlappyDragging] = useState(false)
   const [flappyDragStart, setFlappyDragStart] = useState({ x: 0, y: 0 })
@@ -119,7 +122,7 @@ export const FlappyWindow = ({
       >
         <div className={styles.titleBarLeft}>
           <span className={styles.titleIcon}></span>
-          <span className={styles.titleText}>FLAPPY ELF</span>
+          <span className={styles.titleText}>{t('flappyElf')}</span>
         </div>
         <div className={styles.titleBarRight}>
           <div className={styles.menuLines}></div>
@@ -136,7 +139,7 @@ export const FlappyWindow = ({
       </div>
       
       <div className={styles.videoFeed}>
-        <FlappySanta />
+        <FlappySanta selectedLanguage={selectedLanguage} />
       </div>
     </div>
   )

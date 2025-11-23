@@ -1,50 +1,24 @@
 import { useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
+import { useTranslation } from '../../utils/translations'
 import styles from './LanguageSelector.module.css'
 
 const LANGUAGE_OPTIONS = [
   { code: 'en', name: 'English' },
-  { code: 'de', name: 'Deutsch' },
-  { code: 'es', name: 'Español' },
-  { code: 'fr', name: 'Français' },
-  { code: 'ja', name: '日本語' },
-  { code: 'pt', name: 'Português' },
-  { code: 'zh', name: '中文' },
-  { code: 'hi', name: 'हिन्दी' },
-  { code: 'ko', name: '한국어' },
-  { code: 'it', name: 'Italiano' },
-  { code: 'nl', name: 'Nederlands' },
-  { code: 'pl', name: 'Polski' },
-  { code: 'ru', name: 'Русский' },
-  { code: 'sv', name: 'Svenska' },
-  { code: 'tr', name: 'Türkçe' },
-  { code: 'tl', name: 'Filipino' },
-  { code: 'bg', name: 'Български' },
-  { code: 'ro', name: 'Română' },
-  { code: 'ar', name: 'العربية' },
-  { code: 'cs', name: 'Čeština' },
-  { code: 'el', name: 'Ελληνικά' },
-  { code: 'fi', name: 'Suomi' },
-  { code: 'hr', name: 'Hrvatski' },
-  { code: 'ms', name: 'Bahasa Melayu' },
-  { code: 'sk', name: 'Slovenčina' },
-  { code: 'da', name: 'Dansk' },
-  { code: 'ta', name: 'தமிழ்' },
-  { code: 'uk', name: 'Українська' },
-  { code: 'hu', name: 'Magyar' },
-  { code: 'no', name: 'Norsk' },
-  { code: 'vi', name: 'Tiếng Việt' },
-  { code: 'bn', name: 'বাংলা' },
-  { code: 'th', name: 'ไทย' },
-  { code: 'he', name: 'עברית' },
-  { code: 'ka', name: 'ქართული' },
-  { code: 'id', name: 'Bahasa Indonesia' },
-  { code: 'te', name: 'తెలుగు' },
-  { code: 'gu', name: 'ગુજરાતી' },
-  { code: 'kn', name: 'ಕನ್ನಡ' },
-  { code: 'ml', name: 'മലയാളം' },
-  { code: 'mr', name: 'मराठी' },
-  { code: 'pa', name: 'ਪੰਜਾਬੀ' },
+  { code: 'fr', name: 'French' },
+  { code: 'de', name: 'German' },
+  { code: 'es', name: 'Spanish' },
+  { code: 'pt', name: 'Portuguese' },
+  { code: 'zh', name: 'Chinese' },
+  { code: 'ja', name: 'Japanese' },
+  { code: 'hi', name: 'Hindi' },
+  { code: 'it', name: 'Italian' },
+  { code: 'ko', name: 'Korean' },
+  { code: 'nl', name: 'Dutch' },
+  { code: 'pl', name: 'Polish' },
+  { code: 'ru', name: 'Russian' },
+  { code: 'sv', name: 'Swedish' },
+  { code: 'tr', name: 'Turkish' },
 ]
 
 export const LanguageSelector = ({ selectedLanguage, onLanguageChange, disabled = false }) => {
@@ -54,6 +28,7 @@ export const LanguageSelector = ({ selectedLanguage, onLanguageChange, disabled 
   const dropdownRef = useRef(null)
   const buttonRef = useRef(null)
   const searchInputRef = useRef(null)
+  const t = useTranslation(selectedLanguage)
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -152,7 +127,7 @@ export const LanguageSelector = ({ selectedLanguage, onLanguageChange, disabled 
               ref={searchInputRef}
               type="text"
               className={styles.searchInput}
-              placeholder="Search languages..."
+              placeholder={t('searchLanguages')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onClick={(e) => e.stopPropagation()}
@@ -175,7 +150,7 @@ export const LanguageSelector = ({ selectedLanguage, onLanguageChange, disabled 
                 </button>
               ))
             ) : (
-              <div className={styles.noResults}>No languages found</div>
+              <div className={styles.noResults}>{t('noLanguagesFound')}</div>
             )}
           </div>
         </div>,

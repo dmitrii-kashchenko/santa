@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef } from 'react'
+import { useTranslation } from '../../utils/translations'
 import { ASSET_PATHS } from '../../utils/assetPaths'
 import styles from './CallControls.module.css'
 
-export const CallControls = ({ onAnswer, showIntroVideo, onIntroVideoEnd }) => {
+export const CallControls = ({ onAnswer, showIntroVideo, onIntroVideoEnd, selectedLanguage = 'en' }) => {
   const [videoStarted, setVideoStarted] = useState(false)
   const introVideoRef = useRef(null)
   const buttonRef = useRef(null)
+  const t = useTranslation(selectedLanguage)
 
   // Ensure intro video properly handles ended event
   useEffect(() => {
@@ -57,7 +59,7 @@ export const CallControls = ({ onAnswer, showIntroVideo, onIntroVideoEnd }) => {
         </video>
       )}
       <div className={`${styles.callingText} ${videoStarted ? styles.animate : ''}`}>
-        Santa is calling you
+        {t('santaIsCalling')}
       </div>
       <div className={styles.callControls}>
         <button 
@@ -67,7 +69,7 @@ export const CallControls = ({ onAnswer, showIntroVideo, onIntroVideoEnd }) => {
         >
           <div className={styles.buttonLeft}>
             <div className={styles.answerIcon}></div>
-            <span className={styles.answerText}>ANSWER HIS CALL</span>
+            <span className={styles.answerText}>{t('answerHisCall')}</span>
           </div>
           <div className={styles.buttonDivider}></div>
           <div className={styles.buttonRight}>

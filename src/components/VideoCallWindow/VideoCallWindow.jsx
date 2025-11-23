@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import { useTranslation } from '../../utils/translations'
 import { useWindowPosition } from '../../hooks/useWindowPosition'
 import { HairCheck } from '../cvi/components/hair-check'
 import { Conversation } from '../cvi/components/conversation'
@@ -28,6 +29,8 @@ export const VideoCallWindow = ({
   const [countdown, setCountdown] = useState(180)
   const conversationRef = useRef(null)
   const timerIntervalRef = useRef(null)
+  const [isReplicaReady, setIsReplicaReady] = useState(false)
+  const t = useTranslation(selectedLanguage)
 
   const { position, windowSize, isDragging, handleMouseDown } = useWindowPosition({
     isLoading,
@@ -47,6 +50,7 @@ export const VideoCallWindow = ({
 
   const handleCancel = () => {
     setIsAnswered(false)
+    setIsReplicaReady(false)
     // Cleanup timer when cancelling
     if (timerIntervalRef.current) {
       clearInterval(timerIntervalRef.current)
@@ -63,6 +67,7 @@ export const VideoCallWindow = ({
     setIsCallEnded(false)
     setIsHairCheckComplete(false)
     setIsAnswered(false)
+    setIsReplicaReady(false)
     // Reset timer
     if (timerIntervalRef.current) {
       clearInterval(timerIntervalRef.current)
@@ -71,9 +76,14 @@ export const VideoCallWindow = ({
     setCountdown(180)
   }
 
-  // Initialize timer when haircheck is shown (when user answers the call)
+  const handleReplicaReady = () => {
+    console.log('[VideoCallWindow] Replica ready callback received')
+    setIsReplicaReady(true)
+  }
+
+  // Initialize timer when replica is ready (not during haircheck)
   useEffect(() => {
-    if (isAnswered && !isHairCheckComplete && !timerIntervalRef.current) {
+    if (isReplicaReady && !timerIntervalRef.current) {
       // Fetch remaining time from usage API
       fetch('/api/check-usage', {
         credentials: 'include',
@@ -106,7 +116,7 @@ export const VideoCallWindow = ({
         .then(data => {
           const remainingSeconds = Math.max(0, data.remainingSeconds || 180)
           setCountdown(remainingSeconds)
-          console.log('[VideoCallWindow] Initialized timer during haircheck with remaining time:', remainingSeconds, 'seconds', 'Used:', data.usedSeconds, 'Can start:', data.canStart)
+          console.log('[VideoCallWindow] Replica is ready - starting timer with remaining time:', remainingSeconds, 'seconds', 'Used:', data.usedSeconds, 'Can start:', data.canStart)
           
           // Start countdown timer (only if not already running)
           if (!timerIntervalRef.current) {
@@ -138,7 +148,7 @@ export const VideoCallWindow = ({
           }
         })
     }
-  }, [isAnswered, isHairCheckComplete])
+  }, [isReplicaReady])
 
   // Cleanup timer when call ends or is cancelled
   useEffect(() => {
@@ -206,7 +216,7 @@ export const VideoCallWindow = ({
       >
         <div className={styles.titleBarLeft}>
           <span className={styles.titleIcon}></span>
-          <span className={styles.titleText}>SANTA</span>
+          <span className={styles.titleText}>{t('santa')}</span>
         </div>
         <div className={styles.titleBarRight}>
           <div className={styles.menuLines}></div>
@@ -225,6 +235,7 @@ export const VideoCallWindow = ({
             onAnswer={handleAnswer}
             showIntroVideo={showIntroVideo}
             onIntroVideoEnd={handleIntroVideoEnd}
+            selectedLanguage={selectedLanguage}
           />
         ) : (
           <div className={styles.answeredScreen}>
@@ -235,10 +246,11 @@ export const VideoCallWindow = ({
                   onCancel={handleCancel}
                   conversationUrl={conversationUrl}
                   conversationId={conversationId}
+                  selectedLanguage={selectedLanguage}
                 />
               </div>
             ) : isCallEnded ? (
-              <CallEndedScreen onContinue={handleCallEndedContinue} />
+              <CallEndedScreen onContinue={handleCallEndedContinue} selectedLanguage={selectedLanguage} />
             ) : (
               <div className={styles.conversationContainer}>
                 {conversationUrl ? (
@@ -253,10 +265,11 @@ export const VideoCallWindow = ({
                       shouldJoin={isHairCheckComplete}
                       countdown={countdown}
                       setCountdown={setCountdown}
+                      onReplicaReady={handleReplicaReady}
                     />
                   </>
                 ) : (
-                  <ConnectingScreen error={error} />
+                  <ConnectingScreen error={error} selectedLanguage={selectedLanguage} />
                 )}
               </div>
             )}
