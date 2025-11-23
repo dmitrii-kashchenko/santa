@@ -135,7 +135,7 @@ export default async function handler(req, res) {
     const requestBody = {
       enable_dynamic_greeting: false,
       persona_id: 'p78bae859efb',
-      replica_id: 'r3fbe3834a3e',
+      replica_id: 'r6d3ae13ce19',
       conversation_name: 'Santa Call'
     }
     
