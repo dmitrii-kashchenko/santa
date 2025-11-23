@@ -15,7 +15,7 @@ import { useLocalCamera } from '../../hooks/use-local-camera';
 import { useLocalMicrophone } from '../../hooks/use-local-microphone';
 import { useScoreTracking } from '../../../../hooks/useScoreTracking';
 import { getCurrentScoreContext } from '../../../../utils/scoreUtils';
-import { get30SecondMessages, get5SecondMessages } from '../../../../utils/santaGreetings';
+import { get5SecondMessages } from '../../../../utils/santaGreetings';
 import { AudioWave } from '../audio-wave';
 import { NaughtyNiceBar } from '../../../NaughtyNiceBar/NaughtyNiceBar';
 
@@ -129,10 +129,8 @@ export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, c
 	const micDropdownRef = useRef(null);
 	const videoDropdownRef = useRef(null);
 	const scoreContextSentRef = useRef(false);
-	const echo30sSentRef = useRef(false);
 	const echo5sSentRef = useRef(false);
 	const timeCheck60sSentRef = useRef(false);
-	const echo30sIndexRef = useRef(0);
 	const echo5sIndexRef = useRef(0);
 
 	const handleLeave = useCallback(() => {
@@ -150,10 +148,8 @@ export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, c
 		if (meetingState === 'joined-meeting') {
 			setCountdown(180); // Reset to 3 minutes when joined
 			// Reset echo message flags when joining
-			echo30sSentRef.current = false;
 			echo5sSentRef.current = false;
 			timeCheck60sSentRef.current = false;
-			echo30sIndexRef.current = 0;
 			echo5sIndexRef.current = 0;
 			// Reset context flags when joining
 			scoreContextSentRef.current = false;
@@ -202,32 +198,13 @@ export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, c
 		}
 	}, [countdown, sendAppMessage, conversationId, meetingState]);
 
-	// Echo interactions at 30s and 5s
+	// Echo interactions at 5s
 	useEffect(() => {
 		if (!sendAppMessage || !conversationId || meetingState !== 'joined-meeting') {
 			return;
 		}
 
-		const messages30s = get30SecondMessages(selectedLanguage);
 		const messages5s = get5SecondMessages(selectedLanguage);
-
-		// Send echo at 30 seconds
-		if (countdown === 30 && !echo30sSentRef.current) {
-			const message = messages30s[echo30sIndexRef.current];
-			sendAppMessage({
-				message_type: "conversation",
-				event_type: "conversation.echo",
-				conversation_id: conversationId,
-				properties: {
-					modality: "text",
-					text: message,
-					done: "true"
-				}
-			});
-			echo30sSentRef.current = true;
-			// Rotate to next message for next conversation
-			echo30sIndexRef.current = (echo30sIndexRef.current + 1) % messages30s.length;
-		}
 
 		// Send echo at 5 seconds
 		if (countdown === 5 && !echo5sSentRef.current) {

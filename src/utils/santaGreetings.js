@@ -272,105 +272,6 @@ export const SANTA_GREETINGS = {
   ],
 };
 
-export const SANTA_MESSAGES_30S = {
-  "english": [
-    "Almost time for me to head out, quick, what's your Christmas wish?",
-    "My sleigh leaves soon! Tell me something festive you're excited about this year.",
-    "I have to leave shortly, has this year treated you well?",
-    "I'll be on my way soon, don't forget to spread a little Christmas cheer!"
-  ],
-  "spanish": [
-    "¡Casi es hora de que me vaya! Rápido, ¿cuál es tu deseo de Navidad?",
-    "¡Mi trineo sale pronto! Dime algo festivo que te emocione este año.",
-    "Tengo que irme pronto, ¿te ha tratado bien este año?",
-    "¡Me iré pronto, no olvides difundir un poco de alegría navideña!"
-  ],
-  "french": [
-    "Il est presque temps pour moi de partir, vite, quel est ton vœu de Noël ?",
-    "Mon traîneau part bientôt ! Dis-moi quelque chose de festif qui t'excite cette année.",
-    "Je dois partir bientôt, cette année t'a-t-elle bien traité ?",
-    "Je serai bientôt en route, n'oublie pas de répandre un peu de joie de Noël !"
-  ],
-  "german": [
-    "Es ist fast Zeit für mich zu gehen, schnell, was ist dein Weihnachtswunsch?",
-    "Mein Schlitten fährt bald ab! Erzähl mir etwas Festliches, worauf du dich dieses Jahr freust.",
-    "Ich muss bald gehen, hat dich dieses Jahr gut behandelt?",
-    "Ich werde bald auf dem Weg sein, vergiss nicht, ein wenig Weihnachtsfreude zu verbreiten!"
-  ],
-  "italian": [
-    "È quasi ora che me ne vada, veloce, qual è il tuo desiderio di Natale?",
-    "La mia slitta parte presto! Dimmi qualcosa di festivo che ti entusiasma quest'anno.",
-    "Devo andare presto, quest'anno ti ha trattato bene?",
-    "Sarò presto in viaggio, non dimenticare di diffondere un po' di gioia natalizia!"
-  ],
-  "portuguese": [
-    "Quase na hora de eu partir, rápido, qual é o seu desejo de Natal?",
-    "Meu trenó sai em breve! Me diga algo festivo que você está animado este ano.",
-    "Tenho que sair em breve, este ano te tratou bem?",
-    "Estarei a caminho em breve, não esqueça de espalhar um pouco de alegria natalina!"
-  ],
-  "japanese": [
-    "もうすぐ出発の時間です、急いで、あなたのクリスマスの願いは何ですか？",
-    "私のそりはすぐに出発します！今年あなたが興奮している何かお祭りのことを教えてください。",
-    "もうすぐ出発しなければなりません、今年はあなたをよく扱いましたか？",
-    "すぐに出発します、少しのクリスマスの喜びを広めることを忘れないでください！"
-  ],
-  "chinese": [
-    "我差不多该走了，快说，你的圣诞愿望是什么？",
-    "我的雪橇很快就要出发了！告诉我今年让你兴奋的节日事情。",
-    "我很快就要离开了，今年对你怎么样？",
-    "我很快就要上路了，别忘了传播一点圣诞的欢乐！"
-  ],
-  "korean": [
-    "제가 곧 떠날 시간이 거의 다 되었습니다, 빨리, 당신의 크리스마스 소원은 무엇인가요?",
-    "제 썰매가 곧 출발합니다! 올해 당신이 흥분하는 축제적인 것을 말해주세요.",
-    "곧 떠나야 합니다, 올해 당신을 잘 대했나요?",
-    "곧 길을 떠날 것입니다, 조금의 크리스마스 기쁨을 퍼뜨리는 것을 잊지 마세요!"
-  ],
-  "hindi": [
-    "मेरे जाने का समय लगभग हो गया है, जल्दी, आपकी क्रिसमस की इच्छा क्या है?",
-    "मेरी स्लेज जल्द ही निकल रही है! मुझे कुछ उत्सवी बताएं जिसके बारे में आप इस साल उत्साहित हैं।",
-    "मुझे जल्द ही जाना होगा, क्या इस साल आपके साथ अच्छा व्यवहार हुआ है?",
-    "मैं जल्द ही रास्ते में हूँ, थोड़ी सी क्रिसमस खुशी फैलाना मत भूलना!"
-  ],
-  "dutch": [
-    "Bijna tijd voor mij om te vertrekken, snel, wat is je kerstwens?",
-    "Mijn slee vertrekt binnenkort! Vertel me iets feestelijks waar je dit jaar enthousiast over bent.",
-    "Ik moet binnenkort vertrekken, heeft dit jaar je goed behandeld?",
-    "Ik ga binnenkort op weg, vergeet niet een beetje kerstvreugde te verspreiden!"
-  ],
-  "polish": [
-    "Prawie czas, żebym wyruszył, szybko, jakie jest twoje życzenie bożonarodzeniowe?",
-    "Moje sanie odjeżdżają wkrótce! Powiedz mi coś świątecznego, co cię w tym roku ekscytuje.",
-    "Muszę wkrótce wyjechać, czy ten rok traktował cię dobrze?",
-    "Wkrótce będę w drodze, nie zapomnij rozprzestrzenić trochę radości bożonarodzeniowej!"
-  ],
-  "russian": [
-    "Почти время мне уходить, быстро, какое твое рождественское желание?",
-    "Мои сани скоро отправляются! Расскажи мне что-то праздничное, что тебя волнует в этом году.",
-    "Мне скоро нужно уходить, хорошо ли этот год относился к тебе?",
-    "Я скоро буду в пути, не забудь распространить немного рождественской радости!"
-  ],
-  "swedish": [
-    "Nästan dags för mig att ge mig av, snabbt, vad är din julönskan?",
-    "Min släde avgår snart! Berätta något festligt som du är upphetsad över i år.",
-    "Jag måste snart ge mig av, har året behandlat dig väl?",
-    "Jag kommer snart att vara på väg, glöm inte att sprida lite julglädje!"
-  ],
-  "turkish": [
-    "Neredeyse gitme zamanım geldi, hızlı, Noel dileğin nedir?",
-    "Kızağım yakında ayrılıyor! Bu yıl heyecanlandığın festivalli bir şey söyle.",
-    "Yakında ayrılmam gerekiyor, bu yıl sana iyi davrandı mı?",
-    "Yakında yolda olacağım, biraz Noel neşesi yaymayı unutma!"
-  ],
-  "arabic": [
-    "حان الوقت تقريبًا لي للمغادرة، بسرعة، ما هي أمنية عيد الميلاد الخاصة بك؟",
-    "مزلجتي تغادر قريبًا! أخبرني بشيء احتفالي أنت متحمس له هذا العام.",
-    "يجب أن أغادر قريبًا، هل عاملك هذا العام بشكل جيد؟",
-    "سأكون في الطريق قريبًا، لا تنس نشر القليل من فرحة عيد الميلاد!"
-  ],
-};
-
 export const SANTA_MESSAGES_5S = {
   "english": [
     "I have to dash off now, take care!",
@@ -517,12 +418,6 @@ export function getRandomGreeting(languageCode = null) {
   
   const randomIndex = Math.floor(Math.random() * greetings.length);
   return greetings[randomIndex];
-}
-
-export function get30SecondMessages(languageCode = 'en') {
-  const lang = LANGUAGE_MAP[languageCode] || 'english';
-  const messages = SANTA_MESSAGES_30S[lang] || SANTA_MESSAGES_30S['english'];
-  return messages || SANTA_MESSAGES_30S['english'];
 }
 
 export function get5SecondMessages(languageCode = 'en') {
