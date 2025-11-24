@@ -74,6 +74,7 @@ export const VideoCallWindow = ({
       timerIntervalRef.current = null
     }
     setCountdown(180)
+    window.location.assign('https://platform.tavus.io/auth/sign-up')
   }
 
   const handleReplicaReady = () => {

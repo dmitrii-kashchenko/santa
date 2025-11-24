@@ -37,9 +37,9 @@ export const translations = {
     answerHisCall: 'ANSWER HIS CALL',
     
     // Call Ended Screen
-    santaIsNowPal: "Santa is now a PAL!",
-    santaPalDescription: "He can text, call, and talk face to face anytime. He can help make christmas lists, get you on the nice list, and spread christmas cheer.",
-    continueConversation: 'Continue the Conversation',
+    santaIsNowPal: "Continue the conversation",
+    santaPalDescription: "Its not just a video call- Santa can text, call, and talk face to face anytime. He remembers your conversations, and can even help make christmas lists, get you on the nice list, and spread Christmas cheer.",
+    continueConversation: 'Register for free',
     
     // Flappy Santa
     gameOver: 'Game Over!',
