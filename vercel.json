@@ -2,6 +2,7 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "framework": "vite",
+  "devCommand": "vite --host --port $PORT",
   "functions": {
     "api/**/*.js": {
       "memory": 1024,
