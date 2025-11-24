@@ -13,7 +13,7 @@ export const Footer = ({ selectedLanguage, onLanguageChange, isDisabled = false,
       <div className={styles.greyFooterContent}>
         <div className={styles.greyFooterLeft}>
           <a 
-            href="https://tavus.io"
+            href="https://tavus.io?source=santa_demo"
             target="_blank"
             rel="noopener noreferrer"
             className={styles.greyFooterLogo}

@@ -5,7 +5,7 @@ export const MobilePowered = ({ isWindowOpen = false }) => {
   return (
     <div className={`${styles.mobilePowered} ${isWindowOpen ? styles.hidden : ''}`}>
       <a 
-        href="https://tavus.io"
+        href="https://tavus.io?source=santa_demo"
         target="_blank"
         rel="noopener noreferrer"
         className={styles.mobilePoweredImage}

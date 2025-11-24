@@ -8,20 +8,22 @@ export const ASSET_PATHS = {
     northPole: '/north pole.mp4'
   },
   images: {
+    backgroundPlaceholder: '/processed-image (81).png',
+    elf: '/elf.png',
+    elfDown: '/elfdown.png',
+    elfUp: '/elfup.png',
+    footerLogo: '/Frame 2147229103.png',
+    gameBackground: '/game-background-long.png',
+    lastSanta: '/lastsanta.png',
+    learnMore: '/learnmore2.png',
+    phoneIcon: '/Frame 50.svg',
+    postcardStamp: '/postcard-stamp.png',
+    powered: '/powered.png',
     poweredBy: '/poweredby.png',
     santa: '/santa2.png',
-    elf: '/elf.png',
-    learnMore: '/learnmore2.png',
-    backgroundPlaceholder: '/processed-image (81).png',
-    gameBackground: '/game-background-long.png',
-    shortTree: '/short-tree.png',
     midTree: '/mid-tree.png',
-    tallTree: '/tall-tree.png',
-    elfUp: '/elfup.png',
-    elfDown: '/elfdown.png',
-    phoneIcon: '/Frame 50.svg',
-    footerLogo: '/Frame 2147229103.png',
-    powered: '/powered.png'
+    shortTree: '/short-tree.png',
+    tallTree: '/tall-tree.png'
   },
   icons: {
     mic: '/icons/mic.svg',
@@ -33,6 +35,10 @@ export const ASSET_PATHS = {
     moodNeutral: '/icons/mood-neutral.svg',
     moodNeutralFill: '/icons/solid-mood-neutral.svg',
     moodSad: '/icons/mood-sad.svg',
+    moodSadFill: '/icons/solid-mood-sad.svg',
+    xIcon: '/icons/icon_x.svg',
+    linkedinIcon: '/icons/icon_linkedin.svg',
+    facebookIcon: '/icons/icon_facebook.svg',
     moodSadFill: '/icons/solid-mood-sad.svg'
   },
   sounds: {

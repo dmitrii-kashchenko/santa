@@ -5,37 +5,33 @@ import styles from './CallEndedScreen.module.css'
 
 export const CallEndedScreen = ({ onContinue, selectedLanguage = 'en' }) => {
   const t = useTranslation(selectedLanguage)
-  const { playButtonClick } = useSound()
-  
+
   return (
     <div className={styles.callEndedContainer}>
-      <video
-        autoPlay
-        loop
-        muted
-        playsInline
-        className={styles.callEndedBackgroundVideo}
-      >
-        <source src={ASSET_PATHS.videos.northPole} type="video/mp4" />
-      </video>
-      <div className={styles.callEndedContent}>
-        <h1 className={styles.callEndedTitle}>
-          {t('santaIsNowPal')}
-        </h1>
-        <p className={styles.callEndedSubtext}>
-          {t('santaPalDescription')}
-        </p>
-        <button
-          className={styles.callEndedCta}
-          onClick={() => {
-            playButtonClick()
-            onContinue()
-          }}
-        >
-          {t('continueConversation')}
-        </button>
-      </div>
+      <section>
+        <h1>Santa LOVED talking with you</h1>
+        <p>Keep the holiday magic going. Make Santa your PAL and continue talking to Santa in ANY modality, text, call, or face-to-face. He remembers your conversations, reaches out on his own, and even searches the internet to help you find the perfect gift.</p>
+        <a href="http://platform.tavus.io/auth/sign-up?source=santa_demo">
+          Register for free
+        </a>
+        <span className={styles.shareRowDivider}>Or share to…</span>
+        <div>
+          <a href="">
+            <img src={ASSET_PATHS.icons.xIcon} alt="Share to X" />
+          </a>
+          <a href="">
+            <img src={ASSET_PATHS.icons.linkedinIcon} alt="Share to LinkedIn" />
+          </a>
+          <a href="">
+            <img src={ASSET_PATHS.icons.facebookIcon} alt="Share to Facebook" />
+          </a>
+        </div>
+      </section>
+      
+      <figure>
+        <img src={ASSET_PATHS.images.postcardStamp} alt="" aria-hidden="true" className={styles.stampImage} />
+        <img src={ASSET_PATHS.images.lastSanta} alt="The artist formerly known as Santa" className={styles.santaImage} />
+      </figure>
     </div>
   )
 }
-
