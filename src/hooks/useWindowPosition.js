@@ -45,9 +45,9 @@ export const useWindowPosition = ({
         // After being minimized, use fullscreen
         if (!hasBeenMinimizedRef.current) {
           // First open: position window below hero text, extending to cover icons but stopping above powered image
-          setTimeout(() => {
-            const heroText = document.querySelector('.hero-text')
-            const windowWidth = window.innerWidth * 0.9
+        setTimeout(() => {
+          const heroText = document.querySelector('.hero-text')
+          const windowWidth = window.innerWidth * 0.9
             const result = calculateMobilePosition(heroText, null, windowWidth, null)
             if (result) {
               setWindowSize(result.windowSize)
@@ -58,7 +58,7 @@ export const useWindowPosition = ({
           // After being minimized: use fullscreen
           setWindowSize(null)
           setPosition({ x: 0, y: 0 })
-        }
+          }
       }
     }
   }, [isLoading, isMinimized, isAnswered])
@@ -93,9 +93,9 @@ export const useWindowPosition = ({
         // On mobile before answering, only use custom positioning on first open (before any minimize)
         if (!hasBeenMinimizedRef.current) {
           // First open: position window below hero text, extending to cover icons but stopping above powered image
-          setTimeout(() => {
-            const heroText = document.querySelector('.hero-text')
-            const windowWidth = window.innerWidth * 0.9
+        setTimeout(() => {
+          const heroText = document.querySelector('.hero-text')
+          const windowWidth = window.innerWidth * 0.9
             const result = calculateMobilePosition(heroText, null, windowWidth, null)
             if (result) {
               setWindowSize(result.windowSize)
@@ -106,7 +106,7 @@ export const useWindowPosition = ({
           // After being minimized: use fullscreen
           setWindowSize(null)
           setPosition({ x: 0, y: 0 })
-        }
+          }
       } else if (mainContent) {
         // On desktop, center the window
         setWindowSize(null)
@@ -131,8 +131,8 @@ export const useWindowPosition = ({
       if (mobile && !isAnswered) {
         // Only use custom positioning on first open (before any minimize)
         if (!hasBeenMinimizedRef.current) {
-          setTimeout(() => {
-            const heroText = document.querySelector('.hero-text')
+        setTimeout(() => {
+          const heroText = document.querySelector('.hero-text')
             const windowWidth = window.innerWidth * 0.9
             const result = calculateMobilePosition(heroText, null, windowWidth, null)
             if (result) {
@@ -144,7 +144,7 @@ export const useWindowPosition = ({
           // After being minimized: use fullscreen
           setWindowSize(null)
           setPosition({ x: 0, y: 0 })
-        }
+          }
       } else if (!mobile) {
         // Desktop: center the window
         setWindowSize(null)
@@ -161,12 +161,12 @@ export const useWindowPosition = ({
 
   // Recalculate window size on resize (mobile only)
   useEffect(() => {
-      if (!isMinimized && !isAnswered && isMobile()) {
+    if (!isMinimized && !isAnswered && isMobile()) {
       const handleResize = () => {
         // Only use custom positioning on first open (before any minimize)
         if (!hasBeenMinimizedRef.current) {
-          setTimeout(() => {
-            const heroText = document.querySelector('.hero-text')
+        setTimeout(() => {
+          const heroText = document.querySelector('.hero-text')
             const windowWidth = window.innerWidth * 0.9
             const result = calculateMobilePosition(heroText, null, windowWidth, null)
             if (result) {
@@ -178,7 +178,7 @@ export const useWindowPosition = ({
           // After being minimized: use fullscreen
           setWindowSize(null)
           setPosition({ x: 0, y: 0 })
-        }
+          }
       }
 
       window.addEventListener('resize', handleResize)

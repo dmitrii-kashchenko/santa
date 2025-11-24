@@ -32,13 +32,13 @@ const FlappySanta = ({ selectedLanguage = 'en' }) => {
   // Adjusted physics for better gameplay
   const gravity = 0.1125 // 25% slower fall (0.15 * 0.75)
   const jumpStrength = -5.625 // 25% less high jump (-7.5 * 0.75)
-  const pipeSpeed = 2
+  const pipeSpeed = isMobile ? 4 : 2 // Faster on mobile
   // Vary the gap more to create more height variation in trees
-  const baseGap = isMobile ? 250 : 180
+  const baseGap = isMobile ? 350 : 180 // Larger gap on mobile
   const pipeGap = baseGap // Will be randomized per pipe
   const pipeWidth = isMobile ? 100 : 80
   const santaSize = 40
-  const backgroundScrollSpeed = 0.5 // Slow scroll speed
+  const backgroundScrollSpeed = isMobile ? 1.0 : 0.5 // Faster scroll on mobile to match pipe speed
   // Calculate background reset point based on scroll speed and desired duration
   // At 0.5px/frame at 60fps = 30px/second, for 30 seconds = 900px minimum
   // Use a larger value to ensure smooth panning (panorama images are typically much wider)
@@ -201,7 +201,8 @@ const FlappySanta = ({ selectedLanguage = 'en' }) => {
     // Spawn first pipe immediately
     spawnPipe()
 
-    // Spawn pipes more frequently (every 1.5 seconds instead of 2)
+    // Spawn pipes - less frequently on mobile to space them out more
+    const spawnInterval = isMobile ? 2500 : 1500 // 2.5 seconds on mobile, 1.5 on desktop
     pipeSpawnTimerRef.current = setInterval(() => {
       // Check refs which are synced with state at the start of the effect
       if (!gameStartedRef.current || gameOverRef.current) {
@@ -362,6 +363,26 @@ const FlappySanta = ({ selectedLanguage = 'en' }) => {
                 // Check if Santa's bounding box overlaps with the candy cane's rectangle
                 if (santaRight > candyCaneLeft && santaLeft < candyCaneRight &&
                     santaBottom > candyCaneTop && santaTop < candyCaneBottom) {
+                  if (!gameOverRef.current) {
+                    gameOverRef.current = true
+                    gameStartedRef.current = false
+                    setGameOver(true)
+                    setGameStarted(false)
+                  }
+                  return updated
+                }
+                
+                // Check collision with the rope/string that holds the candy cane
+                // Rope is drawn from top (0) to just above candy cane (pipe.topHeight - 35)
+                const ropeWidth = 4 // Rope is 2px wide, add some padding for collision
+                const ropeLeft = pipeCenterX - ropeWidth / 2
+                const ropeRight = pipeCenterX + ropeWidth / 2
+                const ropeTop = 0
+                const ropeBottom = pipe.topHeight - 35 // Rope ends just above candy cane
+                
+                // Check if Santa's bounding box overlaps with the rope
+                if (santaRight > ropeLeft && santaLeft < ropeRight &&
+                    santaBottom > ropeTop && santaTop < ropeBottom) {
                   if (!gameOverRef.current) {
                     gameOverRef.current = true
                     gameStartedRef.current = false

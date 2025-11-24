@@ -71,7 +71,11 @@ function App() {
     <div className="app">
       <Background />
       
-      <Header />
+      <Header 
+        selectedLanguage={selectedLanguage}
+        onLanguageChange={setSelectedLanguage}
+        isDisabled={isHairCheckComplete && !isCallEnded}
+      />
       
       <MobileCountdown 
         selectedLanguage={selectedLanguage} 

@@ -17,10 +17,10 @@ export const calculateMobilePosition = (heroText, iconsTop, windowWidth, windowH
   let textBottom = 0
   if (heroText) {
     const textRect = heroText.getBoundingClientRect()
-    textBottom = textRect.bottom + 60 // Even larger gap from text to ensure it doesn't cover hero text
+    textBottom = textRect.bottom + 120 // Even larger gap from text to ensure it doesn't cover hero text
   } else {
     // Fallback: estimate text height
-    textBottom = window.innerHeight * 0.35
+    textBottom = window.innerHeight * 0.45
   }
 
   // Powered image is at bottom: 30px, with padding 30px and image height ~30px = ~90px from bottom

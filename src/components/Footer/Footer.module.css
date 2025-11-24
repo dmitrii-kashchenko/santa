@@ -7,7 +7,7 @@
   background: #EAE5DE;
   z-index: 1000;
   box-sizing: border-box;
-  border-top: 1px solid #4A4A4A;
+  border-top: 1px solid #FFFFFF;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -29,6 +29,20 @@
   gap: 20px;
   position: relative;
   z-index: 1001;
+}
+
+.footerLanguageSelector {
+  display: block;
+}
+
+@media (min-width: 769px) {
+  .greyFooterLeft {
+    gap: 0;
+  }
+  
+  .footerLanguageSelector {
+    display: none;
+  }
 }
 
 .greyFooterLogo {
@@ -78,6 +92,7 @@
   flex-direction: column;
   align-items: center;
   gap: 2px;
+  min-width: 32px;
 }
 
 .countdownNumber {
@@ -87,6 +102,9 @@
   color: #2C2C2C;
   line-height: 1;
   letter-spacing: 0.15em;
+  display: inline-block;
+  min-width: 24px;
+  text-align: center;
 }
 
 .countdownLabel {

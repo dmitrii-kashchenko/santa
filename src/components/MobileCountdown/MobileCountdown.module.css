@@ -38,6 +38,7 @@
   flex-direction: column;
   align-items: center;
   gap: 2px;
+  min-width: 28px;
 }
 
 .mobileCountdownNumber {
@@ -47,6 +48,9 @@
   color: #2C2C2C;
   line-height: 1;
   letter-spacing: 0.15em;
+  display: inline-block;
+  min-width: 20px;
+  text-align: center;
 }
 
 .mobileCountdownLabel {

@@ -21,11 +21,13 @@ export const Footer = ({ selectedLanguage, onLanguageChange, isDisabled = false 
             }}
             style={{ cursor: 'pointer' }}
           />
-          <LanguageSelector 
-            selectedLanguage={selectedLanguage}
-            onLanguageChange={onLanguageChange}
-            disabled={isDisabled}
-          />
+          <div className={styles.footerLanguageSelector}>
+            <LanguageSelector 
+              selectedLanguage={selectedLanguage}
+              onLanguageChange={onLanguageChange}
+              disabled={isDisabled}
+            />
+          </div>
         </div>
         <div className={styles.greyFooterCountdown}>
           <div className={styles.greyFooterCountdownTitle}>{t('christmasCountdown')}</div>
