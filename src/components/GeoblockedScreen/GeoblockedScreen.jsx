@@ -11,7 +11,7 @@ export const GeoblockedScreen = ({ selectedLanguage = 'en' }) => {
     <div className="app">
       <Background />
       
-      <Header />
+      <Header hideLanguageSelector={true} />
       
       <div className={styles.geoblockedContent}>
         <div className={styles.errorMessage}>
@@ -21,7 +21,7 @@ export const GeoblockedScreen = ({ selectedLanguage = 'en' }) => {
         </div>
       </div>
 
-      <Footer selectedLanguage={selectedLanguage} onLanguageChange={() => {}} />
+      <Footer selectedLanguage={selectedLanguage} onLanguageChange={() => {}} hideLanguageSelector={true} />
     </div>
   )
 }
