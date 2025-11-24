@@ -386,7 +386,7 @@
 }
 
 .sidebarDescription {
-	font-family: 'FK Raster Grotesk Compact', sans-serif;
+  font-family: 'Berkeley Mono', sans-serif;
 	font-size: 14px;
 	color: #EAE5DE;
 	line-height: 1.6;
@@ -403,7 +403,7 @@
 	padding: 12px 16px;
 	background: #1E3A5F;
 	border-radius: 0;
-	font-family: 'FK Raster Grotesk Compact', sans-serif;
+  font-family: 'Berkeley Mono', sans-serif;
 	font-size: 10px;
 	color: #EAE5DE;
 	width: fit-content;
