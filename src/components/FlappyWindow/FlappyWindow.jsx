@@ -145,7 +145,7 @@ export const FlappyWindow = ({
               setIsMinimized(true)
             }}
           >
-            <span className={styles.windowControlInner}></span>
+            <img src="/close_button.svg" alt="Close" className={styles.windowControlInner} />
           </span>
         </div>
       </div>
