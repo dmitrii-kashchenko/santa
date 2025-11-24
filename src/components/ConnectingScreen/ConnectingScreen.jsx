@@ -28,6 +28,22 @@ export const ConnectingScreen = ({ error, selectedLanguage = 'en' }) => {
     return null
   }
 
+  const getMessage = () => {
+    if (error === 'dailyLimitReached') {
+      return t('santaWorkshopError')
+    }
+    if (error === 'maxConcurrency') {
+      return t('santaBusyError')
+    }
+    if (error === 'apiError') {
+      return t('unableToConnect')
+    }
+    if (error === 'unknown') {
+      return t('connectionError')
+    }
+    return t('connectingToNorthPole')
+  }
+
   // If there's an error, show the CallEndedScreen-style layout
   if (error) {
     const errorContent = getErrorContent()
@@ -48,7 +64,7 @@ export const ConnectingScreen = ({ error, selectedLanguage = 'en' }) => {
           </figure>
         </div>
       )
-  }
+    }
   }
 
   // Otherwise show the connecting screen with video
