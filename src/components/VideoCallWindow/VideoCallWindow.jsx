@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useTranslation } from '../../utils/translations'
 import { useWindowPosition } from '../../hooks/useWindowPosition'
+import { useSound } from '../../contexts/SoundContext'
 import { HairCheck } from '../cvi/components/hair-check'
 import { Conversation } from '../cvi/components/conversation'
 import { CallControls } from '../CallControls/CallControls'
@@ -31,6 +32,7 @@ export const VideoCallWindow = ({
   const timerIntervalRef = useRef(null)
   const [isReplicaReady, setIsReplicaReady] = useState(false)
   const t = useTranslation(selectedLanguage)
+  const { playButtonClick } = useSound()
 
   const { position, windowSize, isDragging, handleDragStart, shouldBeFullscreen } = useWindowPosition({
     isLoading,
@@ -178,6 +180,7 @@ export const VideoCallWindow = ({
 
   const handleClose = (e) => {
     e.stopPropagation()
+    playButtonClick()
     // If call is active, end it (not just leave) and close window
     if (isAnswered && isHairCheckComplete && !isCallEnded) {
       // End the call (ends for all participants, not just leave)

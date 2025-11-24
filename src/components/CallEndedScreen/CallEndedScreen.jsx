@@ -1,9 +1,11 @@
 import { useTranslation } from '../../utils/translations'
 import { ASSET_PATHS } from '../../utils/assetPaths'
+import { useSound } from '../../contexts/SoundContext'
 import styles from './CallEndedScreen.module.css'
 
 export const CallEndedScreen = ({ onContinue, selectedLanguage = 'en' }) => {
   const t = useTranslation(selectedLanguage)
+  const { playButtonClick } = useSound()
   
   return (
     <div className={styles.callEndedContainer}>
@@ -25,7 +27,10 @@ export const CallEndedScreen = ({ onContinue, selectedLanguage = 'en' }) => {
         </p>
         <button
           className={styles.callEndedCta}
-          onClick={onContinue}
+          onClick={() => {
+            playButtonClick()
+            onContinue()
+          }}
         >
           {t('continueConversation')}
         </button>

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslation } from '../../utils/translations'
+import { useSound } from '../../contexts/SoundContext'
 import styles from './LanguageSelector.module.css'
 
 const LANGUAGE_OPTIONS = [
@@ -46,6 +47,7 @@ export const LanguageSelector = ({ selectedLanguage, onLanguageChange, disabled 
   const buttonRef = useRef(null)
   const searchInputRef = useRef(null)
   const t = useTranslation(selectedLanguage)
+  const { playButtonClick } = useSound()
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -119,6 +121,7 @@ export const LanguageSelector = ({ selectedLanguage, onLanguageChange, disabled 
         className={styles.languageButton}
         onClick={() => {
           if (!disabled) {
+            playButtonClick()
             setIsOpen(!isOpen)
             setSearchQuery('')
           }
@@ -159,6 +162,7 @@ export const LanguageSelector = ({ selectedLanguage, onLanguageChange, disabled 
                   key={lang.code}
                   className={`${styles.languageOption} ${selectedLanguage === lang.code ? styles.languageOptionSelected : ''}`}
                   onClick={() => {
+                    playButtonClick()
                     onLanguageChange(lang.code)
                     setIsOpen(false)
                     setSearchQuery('')

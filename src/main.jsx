@@ -4,6 +4,7 @@ import './index.css'
 import App from './App.jsx'
 import { CVIProvider } from './components/cvi/components/cvi-provider'
 import { NaughtyNiceTest } from './components/NaughtyNiceTest/NaughtyNiceTest'
+import { SoundProvider } from './contexts/SoundContext'
 
 // Initialize BotID client-side protection (only in production)
 // In development, BotID is disabled to avoid console warnings
@@ -42,8 +43,10 @@ const isTestRoute = window.location.pathname === '/test/naughty-nice';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <CVIProvider>
-      {isDev && isTestRoute ? <NaughtyNiceTest /> : <App />}
-    </CVIProvider>
+    <SoundProvider>
+      <CVIProvider>
+        {isDev && isTestRoute ? <NaughtyNiceTest /> : <App />}
+      </CVIProvider>
+    </SoundProvider>
   </StrictMode>,
 )

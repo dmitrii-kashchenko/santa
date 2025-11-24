@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useTranslation } from '../utils/translations'
+import { useSound } from '../contexts/SoundContext'
 import './FlappySanta.css'
 
 const FlappySanta = ({ selectedLanguage = 'en' }) => {
   const t = useTranslation(selectedLanguage)
+  const { playGameJump, playGameFailure } = useSound()
   const [gameStarted, setGameStarted] = useState(false)
   const [gameOver, setGameOver] = useState(false)
   const [score, setScore] = useState(0)
@@ -133,10 +135,12 @@ const FlappySanta = ({ selectedLanguage = 'en' }) => {
         setGameStarted(true)
       }
     } else {
+      // Play jump sound when actually jumping during gameplay
+      playGameJump()
       santaVelocityRef.current = jumpStrength
       setSantaVelocity(jumpStrength)
     }
-  }, [gameAreaSize.height, gameStarted, gameOver])
+  }, [gameAreaSize.height, gameStarted, gameOver, playGameJump])
 
   useEffect(() => {
     const handleKeyPress = (e) => {
@@ -244,6 +248,13 @@ const FlappySanta = ({ selectedLanguage = 'en' }) => {
       setIsNewHighScore(false)
     }
   }, [gameOver, score, highScore])
+
+  // Play game failure sound when game ends
+  useEffect(() => {
+    if (gameOver) {
+      playGameFailure()
+    }
+  }, [gameOver, playGameFailure])
 
   useEffect(() => {
     // Sync refs with state

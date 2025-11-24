@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react'
 import { getTranslation } from './utils/translations'
+import { useSound } from './contexts/SoundContext'
 import './App.css'
 import { useAssetPreloader } from './hooks/useAssetPreloader'
 import { useTavusConversation } from './hooks/useTavusConversation'
@@ -33,11 +34,13 @@ function App() {
   const windowRef = useRef(null)
   const flappyWindowRef = useRef(null)
   const hasBeenMinimizedRef = useRef(false)
+  const { playButtonClick } = useSound()
 
   // Only start conversation when user clicks "Answer His Call"
   const { conversationUrl, conversationId, error } = useTavusConversation(isAnswered, false, selectedLanguage, isHairCheckComplete)
 
   const handleSantaIconClick = () => {
+    playButtonClick()
     if (isMinimized) {
       setIsFlappyMinimized(true)
     }
@@ -49,6 +52,7 @@ function App() {
   }
 
   const handleFlappyIconClick = () => {
+    playButtonClick()
     if (isFlappyMinimized) {
       setIsMinimized(true)
     }

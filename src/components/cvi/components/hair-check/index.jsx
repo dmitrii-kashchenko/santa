@@ -1,6 +1,7 @@
 import React, { memo, useEffect, useState, useRef } from 'react';
 import { DailyVideo, useDaily, useDevices } from '@daily-co/daily-react';
 import { useTranslation } from '../../../../utils/translations';
+import { useSound } from '../../../../contexts/SoundContext';
 import { useStartHaircheck } from '../../hooks/use-start-haircheck';
 import { useLocalCamera } from '../../hooks/use-local-camera';
 import { useLocalMicrophone } from '../../hooks/use-local-microphone';
@@ -9,6 +10,7 @@ import styles from './hair-check.module.css';
 
 export const HairCheck = memo(({ isJoinBtnLoading = false, onJoin, onCancel, conversationUrl, conversationId, selectedLanguage = 'en' }) => {
 	const t = useTranslation(selectedLanguage)
+	const { playButtonClick } = useSound();
 	const daily = useDaily();
 	const { localSessionId, isCamMuted, onToggleCamera, isCamReady } = useLocalCamera();
 	const { isMicMuted, onToggleMicrophone } = useLocalMicrophone();
@@ -102,6 +104,7 @@ export const HairCheck = memo(({ isJoinBtnLoading = false, onJoin, onCancel, con
 							onClick={(e) => {
 								// Only toggle if not clicking the arrow
 								if (!e.target.classList.contains(styles.arrow)) {
+									playButtonClick();
 									onToggleMicrophone();
 								}
 							}}
@@ -115,6 +118,7 @@ export const HairCheck = memo(({ isJoinBtnLoading = false, onJoin, onCancel, con
 								className={styles.arrow}
 								onClick={(e) => {
 									e.stopPropagation();
+									playButtonClick();
 									setShowMicDropdown(!showMicDropdown);
 									setShowVideoDropdown(false);
 								}}
@@ -127,6 +131,7 @@ export const HairCheck = memo(({ isJoinBtnLoading = false, onJoin, onCancel, con
 										key={device.deviceId}
 										type="button"
 										onClick={() => {
+											playButtonClick();
 											setMicrophone(device.deviceId);
 											setShowMicDropdown(false);
 										}}
@@ -144,6 +149,7 @@ export const HairCheck = memo(({ isJoinBtnLoading = false, onJoin, onCancel, con
 							onClick={(e) => {
 								// Only toggle if not clicking the arrow
 								if (!e.target.classList.contains(styles.arrow)) {
+									playButtonClick();
 									onToggleCamera();
 								}
 							}}
@@ -157,6 +163,7 @@ export const HairCheck = memo(({ isJoinBtnLoading = false, onJoin, onCancel, con
 								className={styles.arrow}
 								onClick={(e) => {
 									e.stopPropagation();
+									playButtonClick();
 									setShowVideoDropdown(!showVideoDropdown);
 									setShowMicDropdown(false);
 								}}
@@ -169,6 +176,7 @@ export const HairCheck = memo(({ isJoinBtnLoading = false, onJoin, onCancel, con
 										key={device.deviceId}
 										type="button"
 										onClick={() => {
+											playButtonClick();
 											setCamera(device.deviceId);
 											setShowVideoDropdown(false);
 										}}
@@ -188,7 +196,10 @@ export const HairCheck = memo(({ isJoinBtnLoading = false, onJoin, onCancel, con
 				{isPermissionsDenied ? (
 					<button
 						type="button"
-						onClick={onCancelHairCheck}
+						onClick={() => {
+							playButtonClick();
+							onCancelHairCheck();
+						}}
 						data-variant="cancel"
 					>
 						{t('cancel')}
@@ -196,7 +207,10 @@ export const HairCheck = memo(({ isJoinBtnLoading = false, onJoin, onCancel, con
 				) : (
 					<button
 						type="button"
-						onClick={onJoin}
+						onClick={() => {
+							playButtonClick();
+							onJoin();
+						}}
 						disabled={false || isJoinBtnLoading}
 						data-variant="primary"
 					>

@@ -34,6 +34,14 @@ export const ASSET_PATHS = {
     moodNeutralFill: '/icons/solid-mood-neutral.svg',
     moodSad: '/icons/mood-sad.svg',
     moodSadFill: '/icons/solid-mood-sad.svg'
+  },
+  sounds: {
+    backgroundMusic: '/sounds/background_music.mp3',
+    buttonClick: '/sounds/button_click.mp3',
+    callEnd: '/sounds/call_end.mp3',
+    callFailure: '/sounds/call_failure.mp3',
+    gameFailure: '/sounds/game_failure.mp3',
+    gameJump: '/sounds/game_jump.mp3'
   }
 }
 

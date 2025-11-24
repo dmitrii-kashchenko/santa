@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useTranslation } from '../../utils/translations'
 import { ASSET_PATHS } from '../../utils/assetPaths'
+import { useSound } from '../../contexts/SoundContext'
 import styles from './CallControls.module.css'
 
 export const CallControls = ({ onAnswer, showIntroVideo, onIntroVideoEnd, selectedLanguage = 'en' }) => {
@@ -8,6 +9,7 @@ export const CallControls = ({ onAnswer, showIntroVideo, onIntroVideoEnd, select
   const introVideoRef = useRef(null)
   const buttonRef = useRef(null)
   const t = useTranslation(selectedLanguage)
+  const { playButtonClick } = useSound()
 
   // Ensure intro video properly handles ended event
   useEffect(() => {
@@ -65,7 +67,10 @@ export const CallControls = ({ onAnswer, showIntroVideo, onIntroVideoEnd, select
         <button 
           ref={buttonRef} 
           className={styles.unifiedButton}
-          onClick={onAnswer}
+          onClick={() => {
+            playButtonClick()
+            onAnswer()
+          }}
         >
           <div className={styles.buttonLeft}>
             <div className={styles.answerIcon}></div>

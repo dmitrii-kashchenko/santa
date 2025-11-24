@@ -1,4 +1,5 @@
 import { ASSET_PATHS } from '../../utils/assetPaths'
+import { useSound } from '../../contexts/SoundContext'
 import styles from './WindowIcon.module.css'
 
 export const WindowIcon = ({ 
@@ -9,6 +10,12 @@ export const WindowIcon = ({
   position = 'default' 
 }) => {
   const positionClass = position === 'flappy' ? styles.desktopIcon : ''
+  const { playButtonClick } = useSound()
+  
+  const handleClick = () => {
+    playButtonClick()
+    onClick()
+  }
   
   return (
     <div 
@@ -20,7 +27,7 @@ export const WindowIcon = ({
         transform: 'translateY(-50%)',
         zIndex: 5
       }}
-      onClick={onClick}
+      onClick={handleClick}
     >
       <div className={styles.santaIcon}>
         <img 

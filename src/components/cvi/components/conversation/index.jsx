@@ -17,6 +17,7 @@ import { useLocalMicrophone } from '../../hooks/use-local-microphone';
 import { useScoreTracking } from '../../../../hooks/useScoreTracking';
 // import { getCurrentScoreContext } from '../../../../utils/scoreUtils';
 import { get5SecondMessages } from '../../../../utils/santaGreetings';
+import { useSound } from '../../../../contexts/SoundContext';
 import { AudioWave } from '../audio-wave';
 import { NaughtyNiceBar } from '../../../NaughtyNiceBar/NaughtyNiceBar';
 
@@ -118,6 +119,7 @@ const MainVideo = React.memo(() => {
 
 export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, conversationId, selectedLanguage = 'en', shouldJoin = false, countdown = 180, setCountdown, onReplicaReady }, ref) => {
 	const { joinCall, leaveCall, endCall, onAppMessage, sendAppMessage } = useCVICall();
+	const { playButtonClick, playCallEnd, playCallFailure } = useSound();
 	const daily = useDaily();
 	const meetingState = useMeetingState();
 	const { hasMicError, microphones, cameras, currentMic, currentCam, setMicrophone, setCamera } = useDevices();
@@ -516,6 +518,7 @@ export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, c
 	useEffect(() => {
 		if (meetingState === 'error') {
 			console.error('[Conversation] Meeting state is error, calling onLeave');
+			playCallFailure();
 			recordUsageIfNeeded();
 			setIsReplicaPresent(false);
 			hasJoinedRef.current = false;
@@ -529,6 +532,7 @@ export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, c
 		}
 		// Detect when call ends
 		if (meetingState === 'left-meeting' || meetingState === 'ended') {
+			playCallEnd();
 			recordUsageIfNeeded();
 			setIsReplicaPresent(false);
 			hasJoinedRef.current = false;
@@ -540,7 +544,7 @@ export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, c
 			}
 			onLeave();
 		}
-	}, [meetingState, onLeave, recordUsageIfNeeded]);
+	}, [meetingState, onLeave, recordUsageIfNeeded, playCallEnd, playCallFailure]);
 
 	// Participant only joins when "JOIN VIDEO CALL" is pressed AND replica is confirmed to be ready
 	// According to Tavus docs, replica automatically joins the Daily.co room when conversation is created
@@ -770,6 +774,7 @@ export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, c
 							onClick={(e) => {
 								// Only toggle if not clicking the arrow
 								if (!e.target.classList.contains(styles.controlArrow)) {
+									playButtonClick();
 									onToggleMicrophone();
 								}
 							}}
@@ -786,6 +791,7 @@ export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, c
 								className={styles.controlArrow}
 								onClick={(e) => {
 									e.stopPropagation();
+									playButtonClick();
 									setShowMicDropdown(!showMicDropdown);
 									setShowVideoDropdown(false);
 								}}
@@ -799,6 +805,7 @@ export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, c
 										type="button"
 										className={styles.deviceOption}
 										onClick={() => {
+											playButtonClick();
 											setMicrophone(device.deviceId);
 											setShowMicDropdown(false);
 										}}
@@ -818,6 +825,7 @@ export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, c
 							onClick={(e) => {
 								// Only toggle if not clicking the arrow
 								if (!e.target.classList.contains(styles.controlArrow)) {
+									playButtonClick();
 									onToggleCamera();
 								}
 							}}
@@ -834,6 +842,7 @@ export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, c
 								className={styles.controlArrow}
 								onClick={(e) => {
 									e.stopPropagation();
+									playButtonClick();
 									setShowVideoDropdown(!showVideoDropdown);
 									setShowMicDropdown(false);
 								}}
@@ -847,6 +856,7 @@ export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, c
 										type="button"
 										className={styles.deviceOption}
 										onClick={() => {
+											playButtonClick();
 											setCamera(device.deviceId);
 											setShowVideoDropdown(false);
 										}}
@@ -864,7 +874,10 @@ export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, c
 					<NaughtyNiceBar score={currentScore} selectedLanguage={selectedLanguage} />
 
 					{/* Close Button */}
-					<button type="button" className={styles.leaveButton} onClick={handleLeave}>
+					<button type="button" className={styles.leaveButton} onClick={() => {
+						playButtonClick();
+						handleLeave();
+					}}>
 						<svg
 							xmlns="http://www.w3.org/2000/svg"
 							width="16"
