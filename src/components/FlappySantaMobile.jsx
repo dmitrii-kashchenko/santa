@@ -31,7 +31,7 @@ const FlappySantaMobile = ({ selectedLanguage = 'en' }) => {
   const backgroundXRef = useRef(0)
   
   // Mobile-specific physics and game parameters
-  const gravity = 0.1125
+  const gravity = 0.15 // Increased gravity for faster fall on mobile
   const jumpStrength = -5.625
   const pipeSpeed = 4 // Faster on mobile
   const baseGap = 350 // Larger gap on mobile
