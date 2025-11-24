@@ -20,11 +20,16 @@ import { ASSET_PATHS } from './utils/assetPaths'
 function App() {
   const isLoading = useAssetPreloader()
   const { isGeoblocked, isChecking } = useGeoblockCheck()
+  
+  // Check for URL parameter to simulate call ended screen
+  const urlParams = new URLSearchParams(window.location.search)
+  const simulateCallEnded = urlParams.get('simulateCallEnded') === 'true'
+  
   const [isMinimized, setIsMinimized] = useState(false)
   const [isFlappyMinimized, setIsFlappyMinimized] = useState(true)
-  const [isAnswered, setIsAnswered] = useState(false)
-  const [isHairCheckComplete, setIsHairCheckComplete] = useState(false)
-  const [isCallEnded, setIsCallEnded] = useState(false)
+  const [isAnswered, setIsAnswered] = useState(simulateCallEnded)
+  const [isHairCheckComplete, setIsHairCheckComplete] = useState(simulateCallEnded)
+  const [isCallEnded, setIsCallEnded] = useState(simulateCallEnded)
   const [selectedLanguage, setSelectedLanguage] = useState('en')
   const windowRef = useRef(null)
   const flappyWindowRef = useRef(null)
