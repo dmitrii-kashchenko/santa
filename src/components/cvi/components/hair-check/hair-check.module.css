@@ -1,465 +1,299 @@
-/* Button Component */
-/* Start of Selection */
-.buttonCancel {
-	padding: 1rem;
-	border: 1px solid rgba(255, 255, 255, 0.1);
-	background-color: rgba(239, 68, 68, 0.8);
-	border-radius: 0;
-	color: white;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	font-weight: 500;
-	cursor: pointer;
-	transition: all 0.2s;
-	outline: none;
+@layer reset, layout, theme, components;
+
+@layer reset {
+  .container,
+  .container * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font: inherit;
+    color: inherit;
+  }
 }
 
-.buttonCancel:hover {
-	background-color: rgba(239, 68, 68, 1);
-}
-/* End of Selection */
+@layer layout {
+  .container {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
 
-/* ButtonJoin Component */
-.buttonJoin {
-	padding: 0;
-	border: none;
-	background-color: transparent;
-	border-radius: 0;
-	color: white;
-	height: auto;
-	display: flex;
-	align-items: stretch;
-	justify-content: stretch;
-	font-weight: 500;
-	cursor: pointer;
-	margin: 0;
-	width: 100%;
-	box-sizing: border-box;
-}
+  .videoSection {
+    flex: 2;
+    position: relative;
+    overflow: hidden;
+  }
 
-.buttonJoinInner {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	background-color: #7CFF98;
-	border-radius: 0;
-	padding: 12px 20px;
-	box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-	height: auto;
-	min-height: auto;
-	transition: background-color 0.2s;
-	font-weight: 500;
-	width: 100%;
-	margin: 0;
-	gap: 8px;
-	box-sizing: border-box;
-  font-family: 'Berkeley Mono', sans-serif;
-	font-size: 12px;
-	color: #2C2C2C;
-	text-transform: uppercase;
-	letter-spacing: 1px;
-	white-space: nowrap;
-	min-width: 0;
-	text-align: center;
-	line-height: 1.3;
-}
+  .sidebar {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 2.5rem 2rem;
+    gap: 1rem;
+    overflow-y: auto;
+    z-index: 5;
+  }
 
-.buttonJoin:hover .buttonJoinInner {
-	background-color: #35F15E;
-}
+  .controls {
+    position: absolute;
+    bottom: 1.5rem;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    gap: 0.75rem;
+    z-index: 10;
+    padding: 0 1.25rem;
+  }
 
-.buttonJoin:disabled .buttonJoinInner {
-	background-color: rgba(34, 197, 94, 0.5);
-	cursor: not-allowed;
+  /* Mobile Layout */
+  @media (max-width: 768px) {
+    .container {
+      flex-direction: column;
+    }
+
+    .videoSection {
+      flex: none;
+      height: 50%;
+      min-height: 300px;
+    }
+
+    .sidebar {
+      border-left: none;
+      border-top: 1px solid var(--color-border);
+      padding: 1.5rem 1.25rem;
+    }
+  }
 }
 
-.buttonJoinDesktop {
-	display: flex;
-	width: 100%;
-	margin-top: auto;
-	margin-bottom: 0;
-	flex-shrink: 0;
+@layer theme {
+  .container {
+    --color-bg: #1A1A1A;
+    --color-bg-video: #000;
+    --color-border: rgba(74, 74, 74, 0.5);
+    
+    --color-text-primary: #EAE5DE;
+    --color-text-secondary: #4A4A4A;
+    --color-text-inverse: #2C2C2C;
+    
+    --color-button-bg: #EAE5DE;
+    --color-button-hover: #D8D3CC;
+    
+    --color-accent-success: #7CFF98;
+    --color-accent-success-hover: #35F15E;
+    
+    --color-accent-danger: rgba(239, 68, 68, 0.8);
+    --color-accent-danger-hover: #ef4444;
+    
+    --font-display: 'Perfectly Nineties', serif;
+    --font-mono: 'Berkeley Mono', monospace;
+
+    background: var(--color-bg);
+    color: var(--color-text-primary);
+  }
+
+  .videoSection {
+    background: var(--color-bg-video);
+  }
+
+  .sidebar {
+    border-left: 1px solid var(--color-border);
+  }
+
+  .sidebar h2 {
+    font-family: var(--font-display);
+    font-size: 3rem;
+    line-height: 1.2;
+  }
+
+  .sidebar > p {
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    line-height: 1.6;
+  }
+
+  /* Legal text override */
+  .sidebar footer p {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    color: #999;
+    line-height: 1.5;
+  }
+
+  .sidebar footer a {
+    color: var(--color-text-primary);
+    text-decoration: underline;
+  }
+
+  @media (max-width: 768px) {
+    .sidebar h2 {
+      font-size: 2rem;
+    }
+  }
 }
 
-.buttonJoinMobile {
-	position: absolute;
-	top: -5.125rem;
-	left: 50%;
-	transform: translateX(-50%);
-	z-index: 20;
-}
+@layer components {
+  /* Video Element */
+  .videoSection video,
+  .videoSection :global(.daily-video-div) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover !important;
+    position: absolute;
+    inset: 0;
+  }
 
-@media (min-width: 768px) {
-	.buttonJoinMobile {
-		display: none;
-	}
-}
+  /* Placeholder & Overlay */
+  .placeholder {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+  }
 
-/* HaircheckScreen Component */
-.haircheckBlock {
-	position: relative;
-	width: 100%;
-	height: 100%;
-	text-align: left;
-	display: flex;
-	flex-direction: row;
-	align-items: stretch;
-	justify-content: flex-start;
-	overflow: hidden;
-	border-radius: 0;
-}
+  .placeholder img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
 
-@media (max-width: 768px) {
-	.haircheckBlock {
-		flex-direction: column;
-	}
-}
+  .placeholder::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    background: rgba(0, 0, 0, 0.2);
+    z-index: 6;
+  }
 
-.dailyVideo {
-	width: 100%;
-	height: 100%;
-	object-fit: cover !important;
-	position: absolute;
-	inset: 0;
-	transition: opacity 0.3s ease-in-out;
-}
+  /* Control Buttons (Mic/Cam) */
+  .controls > div {
+    position: relative; /* For dropdown positioning */
+  }
 
-.haircheckVideoSection {
-	flex: 2;
-	position: relative;
-	overflow: hidden;
-}
+  .controls > div > button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background: var(--color-button-bg);
+    border: 1px solid var(--color-text-secondary);
+    color: var(--color-text-secondary);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    transition: background-color 0.2s;
+  }
 
-.haircheckUserPlaceholder {
-	position: absolute;
-	inset: 0;
-	z-index: 5;
-	pointer-events: none;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	overflow: hidden;
-}
+  .controls > div > button:hover {
+    background: var(--color-button-hover);
+  }
 
-.haircheckBackgroundImage {
-	width: 100%;
-	height: 100%;
-	object-fit: cover;
-}
+  .controls img {
+    width: 0.875rem;
+    height: 0.875rem;
+    object-fit: contain;
+  }
 
-.haircheckBlurOverlay {
-	position: absolute;
-	inset: 0;
-	backdrop-filter: blur(4px);
-	-webkit-backdrop-filter: blur(4px);
-	z-index: 6;
-	pointer-events: none;
-}
+  .controls span:not(:last-child) {
+    font-weight: 500;
+    font-size: 0.625rem;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
 
-.haircheckUserIcon {
-	width: 12.5rem;
-	height: 12.5rem;
-	border-radius: 0;
-	background-color: rgba(255, 255, 255, 0.1);
-	display: flex;
-	align-items: center;
-	justify-content: center;
-}
+  /* Arrow inside button */
+  .arrow {
+    font-size: 0.625rem;
+    padding-left: 0.25rem;
+    display: flex;
+    align-items: center;
+  }
 
-.haircheckVideoControls {
-	position: absolute;
-	display: flex;
-	justify-content: center;
-	gap: 12px;
-	z-index: 10;
-	width: 100%;
-	bottom: 20px;
-}
+  /* Dropdowns */
+  .dropdown {
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    margin-bottom: 0.5rem;
+    background: var(--color-button-bg);
+    border: 1px solid var(--color-text-secondary);
+    min-width: 12.5rem;
+    max-height: 12.5rem;
+    overflow-y: auto;
+    z-index: 20;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
 
-.controlItem {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	padding: 8px 12px;
-	background: #EAE5DE;
-	border: 0.5px solid #4A4A4A;
-	border-radius: 0;
-}
+  .dropdown button {
+    display: block;
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid rgba(74, 74, 74, 0.15);
+    color: var(--color-text-inverse);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    text-align: left;
+  }
 
-.controlIcon {
-	font-size: 16px;
-	color: #2C2C2C;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-}
+  .dropdown button:hover {
+    background: var(--color-button-hover);
+  }
 
-.volumeSlider {
-	width: 80px;
-	height: 4px;
-	background: rgba(44, 44, 44, 0.3);
-	border-radius: 0;
-	position: relative;
-	overflow: hidden;
-}
+  .dropdown button:last-child {
+    border-bottom: none;
+  }
 
-.volumeFill {
-	width: 60%;
-	height: 100%;
-	background: #2C2C2C;
-	border-radius: 0;
-}
+  /* Main Action Buttons (Join/Cancel) */
+  .sidebar > button {
+    width: 100%;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 500;
+    padding: 0.75rem 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+    margin-top: auto;
+  }
 
-.controlButtonWrapper {
-	position: relative;
-	display: flex;
-}
+  .sidebar > button[data-variant="primary"] {
+    background-color: var(--color-accent-success);
+    color: var(--color-text-inverse);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  }
 
-.controlButton {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	padding: 8px 12px;
-	background: #EAE5DE;
-	border: 0.5px solid #4A4A4A;
-	border-radius: 0;
-	color: #4A4A4A;
-  	font-family: 'Berkeley Mono', sans-serif;
-	font-size: 12px;
-	cursor: pointer;
-	white-space: normal;
-	overflow-wrap: break-word;
-	word-break: break-word;
-	min-width: 0;
-}
+  .sidebar > button[data-variant="primary"]:hover:not(:disabled) {
+    background-color: var(--color-accent-success-hover);
+  }
 
-.controlButton:hover {
-	background: #D8D3CC;
-}
+  .sidebar > button[data-variant="primary"]:disabled {
+    background-color: rgba(34, 197, 94, 0.5);
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
 
-.controlIcon {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	flex-shrink: 0;
-	width: 14px;
-	height: 14px;
-}
+  .sidebar > button[data-variant="cancel"] {
+    background-color: var(--color-accent-danger);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
 
-.iconImage {
-	width: 100%;
-	height: 100%;
-	object-fit: contain;
-	display: block;
-}
-
-.controlText {
-	color: #4A4A4A;
-	letter-spacing: 0.5px;
-	font-weight: 500;
-	font-size: 10px;
-	overflow-wrap: break-word;
-	word-break: break-word;
-	white-space: normal;
-}
-
-.controlArrow {
-	font-size: 10px;
-	color: #4A4A4A;
-	cursor: pointer;
-	padding-left: 4px;
-	user-select: none;
-	flex-shrink: 0;
-}
-
-.controlArrow:hover {
-	color: #2C2C2C;
-}
-
-.deviceDropdown {
-	position: absolute;
-	bottom: 100%;
-	left: 0;
-	margin-bottom: 8px;
-	background: #EAE5DE;
-	border: 0.5px solid #4A4A4A;
-	border-radius: 0;
-	min-width: 200px;
-	max-height: 200px;
-	overflow-y: auto;
-	z-index: 100;
-	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-}
-
-.deviceOption {
-	display: block;
-	width: 100%;
-	padding: 8px 12px;
-	background: #EAE5DE;
-	border: none;
-	border-bottom: 1px solid #4A4A4A;
-	border-radius: 0;
-	color: #2C2C2C;
-  	font-family: 'Berkeley Mono', sans-serif;
-	font-size: 12px;
-	text-align: left;
-	cursor: pointer;
-}
-
-.deviceOption:last-child {
-	border-bottom: none;
-}
-
-.deviceOption:hover {
-	background: #D8D3CC;
-}
-
-.haircheckSidebar {
-	position: relative;
-	right: auto;
-	top: auto;
-	bottom: auto;
-	flex: 1;
-	width: auto;
-	background: #1A1A1A;
-	border-left: 0.5px solid #4A4A4A;
-	z-index: 5;
-}
-
-@media (max-width: 768px) {
-	.haircheckSidebar {
-		position: relative;
-		width: 100%;
-		height: auto;
-		border-left: none;
-		border-top: 0.5px solid #4A4A4A;
-	}
-}
-
-.haircheckSidebarContent {
-	position: relative;
-	display: flex;
-	flex-direction: column;
-	align-items: flex-start;
-	justify-content: flex-start;
-	padding: 40px 30px;
-	gap: 24px;
-	width: 100%;
-	height: 100%;
-	box-sizing: border-box;
-	overflow-y: auto;
-	overflow-x: hidden;
-	min-height: 0;
-}
-
-.haircheckContent {
-	display: flex;
-	flex-direction: column;
-	align-items: flex-start;
-	justify-content: flex-start;
-	gap: 24px;
-	width: 100%;
-	flex: 1;
-	min-height: 0;
-	box-sizing: border-box;
-	overflow-x: hidden;
-}
-
-.sidebarTitle {
-	font-family: 'Perfectly Nineties', serif;
-	font-size: 48px;
-	font-weight: 400;
-	color: #EAE5DE;
-	line-height: 1.2;
-	margin: 0;
-	overflow-wrap: break-word;
-	word-break: break-word;
-	white-space: normal;
-}
-
-.sidebarDescription {
-  font-family: 'Berkeley Mono', sans-serif;
-	font-size: 14px;
-	color: #EAE5DE;
-	line-height: 1.6;
-	margin: 0;
-	overflow-wrap: break-word;
-	word-break: break-word;
-}
-
-.statusIndicator {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: 10px;
-	padding: 12px 16px;
-	background: #1E3A5F;
-	border-radius: 0;
-  font-family: 'Berkeley Mono', sans-serif;
-	font-size: 10px;
-	color: #EAE5DE;
-	width: fit-content;
-	max-width: 100%;
-	overflow-wrap: break-word;
-	word-break: break-word;
-	white-space: normal;
-	box-sizing: border-box;
-}
-
-@media (max-width: 768px) {
-	.statusIndicator {
-		width: 100%;
-		justify-content: center;
-		max-width: 100%;
-		box-sizing: border-box;
-		overflow: hidden;
-	}
-}
-
-.statusIcon {
-	width: 12px;
-	height: 12px;
-	background: #00E676;
-	border-radius: 0;
-	flex-shrink: 0;
-}
-
-.languageSelectorWrapper {
-	width: 100%;
-	display: flex;
-	justify-content: flex-start;
-}
-
-.legalText {
-  font-family: 'Berkeley Mono', sans-serif;
-	font-size: 11px;
-	color: #999;
-	line-height: 1.5;
-	margin: 0;
-	margin-top: auto;
-}
-
-.legalText a {
-	color: #EAE5DE;
-	text-decoration: underline;
-}
-
-.haircheckDescription {
-	color: #ffffff;
-	font-size: 1.125rem;
-	font-weight: 500;
-}
-
-@media (min-width: 768px) {
-	.haircheckDescription {
-		font-size: 1.25rem;
-	}
-}
-
-.haircheckControls {
-	display: flex;
-	align-items: flex-end;
-	justify-content: space-between;
-	gap: 1rem;
+  .sidebar > button[data-variant="cancel"]:hover {
+    background-color: var(--color-accent-danger-hover);
+  }
 }

@@ -7,27 +7,6 @@ import { useLocalMicrophone } from '../../hooks/use-local-microphone';
 
 import styles from './hair-check.module.css';
 
-const JoinBtn = ({ onClick, disabled, className, loading, loadingText, t }) => {
-	return (
-		<button
-			className={`${styles.buttonJoin} ${className || ''}`}
-			type="button"
-			onClick={onClick}
-			disabled={disabled || loading}
-			style={{ opacity: disabled || loading ? 0.6 : 1, cursor: disabled || loading ? 'not-allowed' : 'pointer' }}
-		>
-			<div className={styles.buttonJoinInner}>
-				<img
-					src="/icons/video.svg"
-					alt="Video"
-					style={{ width: '14px', height: '14px', objectFit: 'contain', flexShrink: 0 }}
-				/>
-				<span>{loading ? (loadingText || t('dialingToNorthPole')) : t('joinVideoCall')}</span>
-			</div>
-		</button>
-	);
-};
-
 export const HairCheck = memo(({ isJoinBtnLoading = false, onJoin, onCancel, conversationUrl, conversationId, selectedLanguage = 'en' }) => {
 	const t = useTranslation(selectedLanguage)
 	const daily = useDaily();
@@ -94,21 +73,9 @@ export const HairCheck = memo(({ isJoinBtnLoading = false, onJoin, onCancel, con
 		onCancel?.();
 	};
 
-	const getDescription = () => {
-		if (isPermissionsPrompt) {
-			return t('cameraMicReady');
-		}
-		if (isPermissionsLoading) {
-			return t('gettingCameraMicReady');
-		}
-		if (isPermissionsDenied) {
-			return t('cameraMicDenied');
-		}
-		return t('deviceReady');
-	};
 	return (
-		<div className={styles.haircheckBlock}>
-			<div className={styles.haircheckVideoSection}>
+		<div className={styles.container}>
+			<div className={styles.videoSection}>
 				{(canProceed && !isCamMuted && localSessionId) ? (
 					<DailyVideo 
 						type="video" 
@@ -119,38 +86,33 @@ export const HairCheck = memo(({ isJoinBtnLoading = false, onJoin, onCancel, con
 						autoPlay
 					/>
 				) : (
-					<div className={styles.haircheckUserPlaceholder}>
+					<div className={styles.placeholder}>
 						<img 
 							src="/processed-image (81).png" 
 							alt="Santa background" 
-							className={styles.haircheckBackgroundImage}
 						/>
-						<div className={styles.haircheckBlurOverlay}></div>
+						{/* Overlay handled by ::after pseudo-element in CSS */}
 					</div>
 				)}
 
-				<div className={styles.haircheckVideoControls}>
+				<div className={styles.controls}>
 					{/* Microphone Control */}
-					<div className={styles.controlButtonWrapper} ref={micDropdownRef}>
+					<div ref={micDropdownRef}>
 						<button 
-							className={styles.controlButton}
 							onClick={(e) => {
 								// Only toggle if not clicking the arrow
-								if (!e.target.classList.contains(styles.controlArrow)) {
+								if (!e.target.classList.contains(styles.arrow)) {
 									onToggleMicrophone();
 								}
 							}}
 						>
-							<span className={styles.controlIcon}>
-								<img 
-									src="/icons/mic.svg" 
-									alt="Microphone" 
-									className={styles.iconImage}
-								/>
-							</span>
-							<span className={styles.controlText}>{isMicMuted ? t('micOff') : t('micOn')}</span>
+							<img 
+								src="/icons/mic.svg" 
+								alt="Microphone" 
+							/>
+							<span>{isMicMuted ? t('micOff') : t('micOn')}</span>
 							<span 
-								className={styles.controlArrow}
+								className={styles.arrow}
 								onClick={(e) => {
 									e.stopPropagation();
 									setShowMicDropdown(!showMicDropdown);
@@ -159,12 +121,11 @@ export const HairCheck = memo(({ isJoinBtnLoading = false, onJoin, onCancel, con
 							>↑</span>
 						</button>
 						{showMicDropdown && microphones && microphones.length > 0 && (
-							<div className={styles.deviceDropdown}>
+							<div className={styles.dropdown}>
 								{microphones.map(({ device }) => (
 									<button
 										key={device.deviceId}
 										type="button"
-										className={styles.deviceOption}
 										onClick={() => {
 											setMicrophone(device.deviceId);
 											setShowMicDropdown(false);
@@ -178,26 +139,22 @@ export const HairCheck = memo(({ isJoinBtnLoading = false, onJoin, onCancel, con
 					</div>
 
 					{/* Video Control */}
-					<div className={styles.controlButtonWrapper} ref={videoDropdownRef}>
+					<div ref={videoDropdownRef}>
 						<button 
-							className={styles.controlButton}
 							onClick={(e) => {
 								// Only toggle if not clicking the arrow
-								if (!e.target.classList.contains(styles.controlArrow)) {
+								if (!e.target.classList.contains(styles.arrow)) {
 									onToggleCamera();
 								}
 							}}
 						>
-							<span className={styles.controlIcon}>
-								<img 
-									src="/icons/video.svg" 
-									alt="Video" 
-									className={styles.iconImage}
-								/>
-							</span>
-							<span className={styles.controlText}>{isCamMuted ? t('videoOff') : t('videoOn')}</span>
+							<img 
+								src="/icons/video.svg" 
+								alt="Video" 
+							/>
+							<span>{isCamMuted ? t('videoOff') : t('videoOn')}</span>
 							<span 
-								className={styles.controlArrow}
+								className={styles.arrow}
 								onClick={(e) => {
 									e.stopPropagation();
 									setShowVideoDropdown(!showVideoDropdown);
@@ -206,12 +163,11 @@ export const HairCheck = memo(({ isJoinBtnLoading = false, onJoin, onCancel, con
 							>↑</span>
 						</button>
 						{showVideoDropdown && cameras && cameras.length > 0 && (
-							<div className={styles.deviceDropdown}>
+							<div className={styles.dropdown}>
 								{cameras.map(({ device }) => (
 									<button
 										key={device.deviceId}
 										type="button"
-										className={styles.deviceOption}
 										onClick={() => {
 											setCamera(device.deviceId);
 											setShowVideoDropdown(false);
@@ -226,38 +182,38 @@ export const HairCheck = memo(({ isJoinBtnLoading = false, onJoin, onCancel, con
 				</div>
 			</div>
 
-			<div className={styles.haircheckSidebar}>
-				<div className={styles.haircheckSidebarContent}>
-					<div className={styles.haircheckContent}>
-						<h2 className={styles.sidebarTitle}>{t('meetSanta')}</h2>
-						<p className={styles.sidebarDescription}>{t('meetSantaDescription')}</p>
-						<div className={styles.statusIndicator}>
-							<div className={styles.statusIcon}></div>
-							<span>{t('santaHasJoined')}</span>
-						</div>
-						{isPermissionsDenied ? (
-							<button
-								type="button"
-								onClick={onCancelHairCheck}
-								className={`${styles.buttonCancel} ${styles.buttonJoinDesktop}`}
-							>
-								{t('cancel')}
-							</button>
-						) : (
-							<JoinBtn
-								loading={isJoinBtnLoading}
-								disabled={false}
-								className={styles.buttonJoinDesktop}
-								onClick={onJoin}
-								t={t}
-							/>
-						)}
-						<p className={styles.legalText}>
-							{t('legalText')}
-						</p>
-					</div>
-				</div>
-			</div>
+			<aside className={styles.sidebar}>
+				<h2>{t('meetSanta')}</h2>
+				<p>{t('meetSantaDescription')}</p>
+				{isPermissionsDenied ? (
+					<button
+						type="button"
+						onClick={onCancelHairCheck}
+						data-variant="cancel"
+					>
+						{t('cancel')}
+					</button>
+				) : (
+					<button
+						type="button"
+						onClick={onJoin}
+						disabled={false || isJoinBtnLoading}
+						data-variant="primary"
+					>
+						<img
+							src="/icons/video.svg"
+							alt="Video"
+							style={{ width: '14px', height: '14px', objectFit: 'contain', flexShrink: 0 }}
+						/>
+						<span>{isJoinBtnLoading ? t('dialingToNorthPole') : t('joinVideoCall')}</span>
+					</button>
+				)}
+				<footer>
+					<p className={styles.legalText}>
+						{t('legalText')}
+					</p>
+				</footer>
+			</aside>
 		</div>
 	);
 });
