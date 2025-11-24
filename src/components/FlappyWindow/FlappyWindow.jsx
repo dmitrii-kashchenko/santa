@@ -78,9 +78,21 @@ export const FlappyWindow = ({
   useEffect(() => {
     const handleMouseMove = (e) => {
       if (isFlappyDragging && windowRef.current) {
+        const windowRect = windowRef.current.getBoundingClientRect()
+        const windowWidth = windowRect.width
+        const windowHeight = windowRect.height
+        
+        // Calculate desired position (viewport coordinates since window is position: fixed)
+        let newX = e.clientX - flappyDragStart.x
+        let newY = e.clientY - flappyDragStart.y
+        
+        // Constrain to viewport bounds
+        newX = Math.max(0, Math.min(newX, window.innerWidth - windowWidth))
+        newY = Math.max(0, Math.min(newY, window.innerHeight - windowHeight))
+        
         setFlappyPosition({
-          x: e.clientX - flappyDragStart.x,
-          y: e.clientY - flappyDragStart.y
+          x: newX,
+          y: newY
         })
       }
     }

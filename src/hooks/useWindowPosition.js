@@ -210,9 +210,21 @@ export const useWindowPosition = ({
   useEffect(() => {
     const handleMouseMove = (e) => {
       if (isDragging && windowRef.current) {
+        const windowRect = windowRef.current.getBoundingClientRect()
+        const windowWidth = windowRect.width
+        const windowHeight = windowRect.height
+        
+        // Calculate desired position (viewport coordinates since window is position: fixed)
+        let newX = e.clientX - dragStart.x
+        let newY = e.clientY - dragStart.y
+        
+        // Constrain to viewport bounds
+        newX = Math.max(0, Math.min(newX, window.innerWidth - windowWidth))
+        newY = Math.max(0, Math.min(newY, window.innerHeight - windowHeight))
+        
         setPosition({
-          x: e.clientX - dragStart.x,
-          y: e.clientY - dragStart.y
+          x: newX,
+          y: newY
         })
         setHasBeenManuallyDragged(true)
       }
