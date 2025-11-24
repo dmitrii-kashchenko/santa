@@ -35,3 +35,9 @@
   line-height: 1;
 }
 
+@media (max-width: 768px) {
+  .musicToggle {
+    display: none;
+  }
+}
+
