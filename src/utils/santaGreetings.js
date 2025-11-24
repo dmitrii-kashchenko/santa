@@ -414,6 +414,7 @@ const LANGUAGE_MAP = {
   'sv': 'swedish',
   'id': 'indonesian',
   'tl': 'filipino',
+  'fil': 'filipino',
   'cmn': 'mandarin',
   'ja': 'japanese',
   'uk': 'ukrainian',
