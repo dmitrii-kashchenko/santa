@@ -29,9 +29,9 @@
 	background: rgba(248, 250, 252, 0.08);
 	color: white;
 	height: 100%;
-	font-size: 1.5rem;
 	font-weight: 600;
 	text-align: center;
+	text-wrap: pretty;
 }
 
 .videoContainer {

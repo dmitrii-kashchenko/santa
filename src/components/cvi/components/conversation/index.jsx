@@ -740,7 +740,7 @@ export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, c
 			<div className={styles.videoContainer} onClick={handleVideoContainerClick}>
 				{hasMicError && (
 					<div className={styles.errorContainer}>
-						<p>Camera or microphone access denied. Please check your settings and try again.</p>
+						<p>Camera or microphone access denied.<br />Please check your settings and try again.</p>
 					</div>
 				)}
 
