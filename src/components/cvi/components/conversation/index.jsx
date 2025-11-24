@@ -423,22 +423,6 @@ export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, c
 				event?.role ||
 				'';
 
-			// Log all utterance-related events for debugging
-			if (isUtteranceEvent || utteranceText || role) {
-				// Check for both <score:-> and <scoring:-> patterns
-				const hasScoreTag = utteranceText ? (/<score:[+-]+>/.test(utteranceText) || /<scoring:[+-]+>/.test(utteranceText)) : false;
-				
-				console.log('[Conversation] Utterance event detected:', {
-					eventType,
-					role,
-					hasUtteranceText: !!utteranceText,
-					utteranceTextLength: utteranceText?.length || 0,
-					utteranceTextPreview: utteranceText ? utteranceText.substring(0, 200) : '',
-					containsScoreTag: hasScoreTag,
-					willProcess: (role === 'replica' || isUtteranceEvent) && utteranceText && typeof utteranceText === 'string' && utteranceText.length > 0,
-				});
-			}
-
 			// Only process replica (AI) utterances, not user messages
 			// Check both role and event type to catch all possible utterance events
 			if (
@@ -447,23 +431,6 @@ export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, c
 				typeof utteranceText === 'string' &&
 				utteranceText.length > 0
 			) {
-				// Log the exact text received from LLM before processing
-				// Check for both <score:-> and <scoring:-> patterns
-				const scorePattern = /<score:[+-]+>/g;
-				const scoringPattern = /<scoring:[+-]+>/g;
-				const containsScoreTag = scorePattern.test(utteranceText) || scoringPattern.test(utteranceText);
-				const scoreTags = utteranceText.match(scorePattern) || [];
-				const scoringTags = utteranceText.match(scoringPattern) || [];
-				
-				console.log('[Conversation] Processing LLM utterance:', {
-					eventType,
-					role,
-					fullText: utteranceText,
-					textLength: utteranceText.length,
-					containsScoreTag: containsScoreTag,
-					scoreTagsFound: [...scoreTags, ...scoringTags],
-				});
-
 				// Process message - this extracts tags, updates score, and returns clean text
 				processMessage(utteranceText);
 			}
