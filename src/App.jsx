@@ -2,7 +2,6 @@ import { useState, useRef } from 'react'
 import { getTranslation } from './utils/translations'
 import './App.css'
 import { useAssetPreloader } from './hooks/useAssetPreloader'
-import { useGeoblockCheck } from './hooks/useGeoblockCheck'
 import { useTavusConversation } from './hooks/useTavusConversation'
 import { LoadingScreen } from './components/LoadingScreen/LoadingScreen'
 import { GeoblockedScreen } from './components/GeoblockedScreen/GeoblockedScreen'
@@ -19,7 +18,6 @@ import { ASSET_PATHS } from './utils/assetPaths'
 
 function App() {
   const isLoading = useAssetPreloader()
-  const { isGeoblocked, isChecking } = useGeoblockCheck()
   
   // Check for URL parameter to simulate call ended screen
   const urlParams = new URLSearchParams(window.location.search)
@@ -64,12 +62,12 @@ function App() {
   }
 
   // Show loading screen
-  if (isLoading || isChecking) {
+  if (isLoading) {
     return <LoadingScreen selectedLanguage={selectedLanguage} />
   }
 
-  // Show geoblocked screen if user is geoblocked (from WAF redirect or API check)
-  if (isWafGeoblocked || isGeoblocked || error === 'geoblocked') {
+  // Show geoblocked screen if user is geoblocked (from WAF redirect or API error)
+  if (isWafGeoblocked || error === 'geoblocked') {
     return <GeoblockedScreen selectedLanguage={selectedLanguage} />
   }
 
