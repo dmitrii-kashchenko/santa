@@ -16,13 +16,25 @@ export const CallEndedScreen = ({ onContinue, selectedLanguage = 'en' }) => {
         </a>
         <span className={styles.shareRowDivider}>Or share to…</span>
         <div>
-          <a href="">
+          <a 
+            href={`https://twitter.com/intent/tweet?text=${encodeURIComponent('SANTA IS REAL. Meet AI Santa at santa.tavus.io')}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             <img src={ASSET_PATHS.icons.xIcon} alt="Share to X" />
           </a>
-          <a href="">
+          <a 
+            href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent('https://santa.tavus.io')}&summary=${encodeURIComponent('SANTA IS REAL. Meet AI Santa at santa.tavus.io')}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             <img src={ASSET_PATHS.icons.linkedinIcon} alt="Share to LinkedIn" />
           </a>
-          <a href="">
+          <a 
+            href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent('https://santa.tavus.io')}&quote=${encodeURIComponent('SANTA IS REAL. Meet AI Santa at santa.tavus.io')}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             <img src={ASSET_PATHS.icons.facebookIcon} alt="Share to Facebook" />
           </a>
         </div>

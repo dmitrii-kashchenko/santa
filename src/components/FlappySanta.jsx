@@ -4,7 +4,7 @@ import FlappySantaDesktop from './FlappySantaDesktop'
 
 const FlappySanta = ({ selectedLanguage = 'en' }) => {
   const [isMobile, setIsMobile] = useState(false)
-
+  
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(typeof window !== 'undefined' && window.innerWidth <= 768)
