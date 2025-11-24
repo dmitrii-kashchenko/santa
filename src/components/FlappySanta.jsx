@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { useTranslation } from '../utils/translations'
 import './FlappySanta.css'
 
-const FlappySanta = () => {
+const FlappySanta = ({ selectedLanguage = 'en' }) => {
+  const t = useTranslation(selectedLanguage)
   const [gameStarted, setGameStarted] = useState(false)
   const [gameOver, setGameOver] = useState(false)
   const [score, setScore] = useState(0)
@@ -467,7 +469,7 @@ const FlappySanta = () => {
               textAlign: 'center'
             }}
           >
-            {gameOver ? 'Game Over!' : 'Flappy Santa'}
+            {gameOver ? t('gameOver') : t('flappySanta')}
           </div>
           {gameOver && (
             <div
@@ -478,7 +480,7 @@ const FlappySanta = () => {
                 textAlign: 'center'
               }}
             >
-              Score: {score}
+              {t('score')} {score}
             </div>
           )}
           <div
@@ -489,7 +491,7 @@ const FlappySanta = () => {
               textAlign: 'center'
             }}
           >
-            {gameOver ? 'Click or press SPACE to play again' : 'Click or press SPACE to start'}
+            {gameOver ? t('clickToPlayAgain') : t('clickToStart')}
           </div>
         </div>
       )}

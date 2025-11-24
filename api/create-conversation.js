@@ -117,10 +117,11 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { custom_greeting } = req.body
+    const { custom_greeting, language } = req.body
 
     // Log the greeting being received (first 100 chars for debugging)
     console.log('[create-conversation] Custom greeting received:', custom_greeting ? `${custom_greeting.substring(0, 100)}... (length: ${custom_greeting.length})` : 'none')
+    console.log('[create-conversation] Language received:', language || 'not provided')
 
     // Get API key from server-side environment variable (not exposed to client)
     const apiKey = process.env.TAVUS_API_KEY
@@ -128,6 +129,26 @@ export default async function handler(req, res) {
     if (!apiKey) {
       console.error('[create-conversation] Tavus API key not found')
       return res.status(500).json({ error: 'Server configuration error' })
+    }
+
+    // Map language codes to Tavus API language format
+    // Only includes languages supported by Tavus API
+    const languageMap = {
+      'en': 'english',
+      'fr': 'french',
+      'de': 'german',
+      'es': 'spanish',
+      'pt': 'portuguese',
+      'zh': 'chinese',
+      'ja': 'japanese',
+      'hi': 'hindi',
+      'it': 'italian',
+      'ko': 'korean',
+      'nl': 'dutch',
+      'pl': 'polish',
+      'ru': 'russian',
+      'sv': 'swedish',
+      'tr': 'turkish'
     }
 
     // Prepare request body for Tavus API
@@ -142,6 +163,14 @@ export default async function handler(req, res) {
     // Only add custom_greeting if it's provided and not empty
     if (custom_greeting && custom_greeting.trim().length > 0) {
       requestBody.custom_greeting = custom_greeting
+    }
+
+    // Add language to properties if provided
+    if (language) {
+      const tavusLanguage = languageMap[language.toLowerCase()] || languageMap['en']
+      requestBody.properties = {
+        language: tavusLanguage
+      }
     }
 
     // Log the request body being sent (first 100 chars of greeting)

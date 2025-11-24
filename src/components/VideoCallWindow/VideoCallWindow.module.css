@@ -65,11 +65,16 @@
 .titleText {
   color: #2C2C2C;
   font-weight: bold;
-  line-height: 1;
+  line-height: 1.2;
   margin: 0;
   padding: 0;
   display: flex;
   align-items: center;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  white-space: normal;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .titleBarRight {
@@ -282,6 +287,9 @@
   line-height: 1.2;
   margin: 0 0 16px 0;
   display: block;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  white-space: normal;
 }
 
 .haircheckContainer :global(.sidebar-description) {
@@ -291,6 +299,8 @@
   line-height: 1.6;
   margin: 0 0 24px 0;
   display: block;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .haircheckContainer :global(.status-indicator) {

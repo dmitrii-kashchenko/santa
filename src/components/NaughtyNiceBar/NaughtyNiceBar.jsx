@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from '../../utils/translations';
 import styles from './NaughtyNiceBar.module.css';
 
 // Component constants
@@ -58,7 +59,9 @@ const calculateWiggle = (isOptimistic, score, time, segmentIndex, fillPercent) =
   return 0;
 };
 
-export const NaughtyNiceBar = ({ score = 0 }) => {
+export const NaughtyNiceBar = ({ score = 0, selectedLanguage = 'en' }) => {
+  const t = useTranslation(selectedLanguage)
+  
   // Clamp score to valid range (-10 to +10)
   const clampedScore = Math.max(-SEGMENT_COUNT, Math.min(SEGMENT_COUNT, score));
   const segmentCount = clampedScore / 2;
@@ -179,7 +182,7 @@ export const NaughtyNiceBar = ({ score = 0 }) => {
           <span className={styles.iconWrapper}>
             <img src="/icons/mood-sad.svg" alt="" />
           </span>
-          <span>Naughty</span>
+          <span>{t('naughty')}</span>
         </div>
         
         <div>
@@ -189,7 +192,7 @@ export const NaughtyNiceBar = ({ score = 0 }) => {
         </div>
         
         <div data-very-nice={isVeryNice}>
-          <span>Nice</span>
+          <span>{t('nice')}</span>
           <span className={styles.iconWrapper}>
             <img src="/icons/mood-happy.svg" alt="" />
           </span>

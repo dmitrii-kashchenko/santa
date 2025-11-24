@@ -75,7 +75,8 @@ export const useTavusConversation = (isAnswered, shouldPreload = false, selected
               'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-              custom_greeting: customGreeting
+              custom_greeting: customGreeting,
+              language: selectedLanguage
             })
           })
 

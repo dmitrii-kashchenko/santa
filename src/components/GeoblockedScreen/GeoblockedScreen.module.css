@@ -25,6 +25,8 @@
   line-height: 1.2;
   text-transform: lowercase;
   margin-bottom: 30px;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .errorDescription {
@@ -33,6 +35,8 @@
   color: #666;
   line-height: 1.6;
   margin: 0;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 @media (max-width: 768px) {
