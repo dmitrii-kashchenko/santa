@@ -66,8 +66,8 @@ function App() {
     return <LoadingScreen selectedLanguage={selectedLanguage} />
   }
 
-  // Show geoblocked screen if user is geoblocked (from WAF redirect or API error)
-  if (isWafGeoblocked || error === 'geoblocked') {
+  // Show geoblocked screen if user is geoblocked (from WAF redirect)
+  if (isWafGeoblocked) {
     return <GeoblockedScreen selectedLanguage={selectedLanguage} />
   }
 

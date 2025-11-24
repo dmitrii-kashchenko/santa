@@ -55,16 +55,11 @@ export const useTavusConversation = (isAnswered, shouldPreload = false, selected
 
           console.log('[useTavusConversation] Making API request to serverless function...')
           
-          // For testing: add ?testCountry=XX to URL to simulate geoblocking
           // Add ?bypassUsage=true to bypass daily usage limits
           const urlParams = new URLSearchParams(window.location.search)
-          const testCountry = urlParams.get('testCountry')
           const bypassUsage = urlParams.get('bypassUsage') === 'true'
-          const apiUrlParams = new URLSearchParams()
-          if (testCountry) apiUrlParams.set('testCountry', testCountry)
-          if (bypassUsage) apiUrlParams.set('bypassUsage', 'true')
-          const apiUrl = apiUrlParams.toString() 
-            ? `/api/create-conversation?${apiUrlParams.toString()}`
+          const apiUrl = bypassUsage 
+            ? '/api/create-conversation?bypassUsage=true'
             : '/api/create-conversation'
           
           // Call serverless function instead of Tavus API directly
@@ -108,12 +103,6 @@ export const useTavusConversation = (isAnswered, shouldPreload = false, selected
               errorData = { error: errorText }
             }
             console.error('[useTavusConversation] Failed to generate conversation URL:', response.status, errorData)
-            
-            // Handle geoblocking (403 with geoblocked error)
-            if (response.status === 403 && errorData.error === 'geoblocked') {
-              setError('geoblocked')
-              return
-            }
             
             // Handle daily limit (429 with daily_limit_reached error)
             if (response.status === 429 && errorData.error === 'daily_limit_reached') {
