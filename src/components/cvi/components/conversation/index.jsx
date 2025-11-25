@@ -138,6 +138,7 @@ export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, c
 	const videoDropdownRef = useRef(null);
 	const scoreContextSentRef = useRef(false);
 	const echo5sSentRef = useRef(false);
+	const echo5sPendingRef = useRef(false);
 	const timeCheck45sSentRef = useRef(false);
 	const echo5sIndexRef = useRef(0);
 	const isReplicaSpeakingRef = useRef(false);
@@ -232,6 +233,7 @@ export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, c
 		if (meetingState === 'joined-meeting' && isReplicaPresent) {
 			// Reset echo message flags when joining
 			echo5sSentRef.current = false;
+			echo5sPendingRef.current = false;
 			timeCheck45sSentRef.current = false;
 			timeCheck45sPendingRef.current = false;
 			echo5sIndexRef.current = 0;
@@ -284,24 +286,16 @@ export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, c
 			return;
 		}
 
-		const messages5s = get5SecondMessages(selectedLanguage);
-
 		// Send echo at 5 seconds
-		if (countdown === 5 && !echo5sSentRef.current) {
-			const message = messages5s[echo5sIndexRef.current];
-			sendAppMessage({
-				message_type: "conversation",
-				event_type: "conversation.echo",
-				conversation_id: conversationId,
-				properties: {
-					modality: "text",
-					text: message,
-					done: "true"
-				}
-			});
-			echo5sSentRef.current = true;
-			// Rotate to next message for next conversation
-			echo5sIndexRef.current = (echo5sIndexRef.current + 1) % messages5s.length;
+		// Always wait for replica to finish speaking to avoid interrupting
+		if (countdown === 5 && !echo5sSentRef.current && !echo5sPendingRef.current) {
+			// Always set pending flag and wait for replica to finish speaking
+			// This ensures we never interrupt the replica mid-sentence
+			echo5sPendingRef.current = true;
+			console.log('[Conversation] Echo at 5 seconds - waiting for replica to finish speaking');
+			
+			// If replica is not currently speaking, we'll send it when the next end_speaking event fires
+			// This ensures we don't interrupt even if replica starts speaking right after this check
 		}
 	}, [countdown, sendAppMessage, conversationId, meetingState, selectedLanguage, isReplicaPresent]);
 
@@ -335,6 +329,28 @@ export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, c
 			if (eventType === 'replica.end_speaking' || eventType === 'conversation.replica.end_speaking') {
 				isReplicaSpeakingRef.current = false;
 				console.log('[Conversation] Replica finished speaking');
+				
+				// If we were waiting to send the 5s echo, send it now that replica is done speaking
+				if (echo5sPendingRef.current && !echo5sSentRef.current && sendAppMessage && conversationId) {
+					const messages5s = get5SecondMessages(selectedLanguage);
+					const message = messages5s[echo5sIndexRef.current];
+					
+					sendAppMessage({
+						message_type: "conversation",
+						event_type: "conversation.echo",
+						conversation_id: conversationId,
+						properties: {
+							modality: "text",
+							text: message,
+							done: "true"
+						}
+					});
+					echo5sSentRef.current = true;
+					echo5sPendingRef.current = false;
+					// Rotate to next message for next conversation
+					echo5sIndexRef.current = (echo5sIndexRef.current + 1) % messages5s.length;
+					console.log('[Conversation] Echo sent at 5 seconds (after replica finished speaking)');
+				}
 				
 				// If we were waiting to send the 45s time check, send it now that replica is done speaking
 				if (timeCheck45sPendingRef.current && !timeCheck45sSentRef.current && sendAppMessage && conversationId) {
@@ -435,7 +451,7 @@ export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, c
 				unsubscribe();
 			}
 		};
-	}, [onAppMessage, sendAppMessage, conversationId, processMessage, currentScore]);
+	}, [onAppMessage, sendAppMessage, conversationId, processMessage, currentScore, selectedLanguage]);
 
 	// Close dropdowns when clicking outside
 	useEffect(() => {
