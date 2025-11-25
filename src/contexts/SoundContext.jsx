@@ -4,7 +4,7 @@ import { ASSET_PATHS } from '../utils/assetPaths'
 const SoundContext = createContext(null)
 
 export const SoundProvider = ({ children }) => {
-  const [isMuted, setIsMuted] = useState(true)
+  const [isMuted, setIsMuted] = useState(false)
   const backgroundMusicRef = useRef(null)
   const buttonClickSoundRef = useRef(null)
   const callEndSoundRef = useRef(null)
@@ -16,10 +16,10 @@ export const SoundProvider = ({ children }) => {
     // Create background music audio element
     const backgroundMusic = new Audio(ASSET_PATHS.sounds.backgroundMusic)
     backgroundMusic.loop = true
-    backgroundMusic.muted = true
+    backgroundMusic.muted = false
     backgroundMusic.volume = 1.0
     
-    // Start playing (muted by default)
+    // Start playing (unmuted by default)
     backgroundMusic.play().catch(error => {
       console.log('Background music autoplay blocked:', error)
     })
