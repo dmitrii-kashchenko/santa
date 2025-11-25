@@ -62,6 +62,9 @@ export const useTavusConversation = (isAnswered, shouldPreload = false, selected
             ? '/api/create-conversation?bypassUsage=true'
             : '/api/create-conversation'
           
+          // Get timezone offset (negated getTimezoneOffset for correct calculation)
+          const timezoneOffset = -new Date().getTimezoneOffset();
+          
           // Call serverless function instead of Tavus API directly
           const response = await fetch(apiUrl, {
             method: 'POST',
@@ -71,7 +74,8 @@ export const useTavusConversation = (isAnswered, shouldPreload = false, selected
             },
             body: JSON.stringify({
               custom_greeting: customGreeting,
-              language: selectedLanguage
+              language: selectedLanguage,
+              timezoneOffset: timezoneOffset
             })
           })
 

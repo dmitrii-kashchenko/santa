@@ -163,6 +163,9 @@ export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, c
 			const callDuration = Math.floor((Date.now() - callStartTimeRef.current) / 1000);
 			const actualDuration = Math.min(callDuration, 180); // Cap at 3 minutes
 			
+			// Get timezone offset (negated getTimezoneOffset for correct calculation)
+			const timezoneOffset = -new Date().getTimezoneOffset();
+			
 			console.log('[Conversation] Recording usage - Duration:', actualDuration, 'seconds, Call start:', new Date(callStartTimeRef.current).toISOString());
 			
 			// Record usage to backend
@@ -173,7 +176,8 @@ export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, c
 					'Content-Type': 'application/json'
 				},
 				body: JSON.stringify({
-					durationSeconds: actualDuration
+					durationSeconds: actualDuration,
+					timezoneOffset: timezoneOffset
 				})
 			})
 				.then(res => {
@@ -477,6 +481,9 @@ export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, c
 			const callDuration = Math.floor((Date.now() - callStartTimeRef.current) / 1000);
 			const actualDuration = Math.min(callDuration, 180); // Cap at 3 minutes
 			
+			// Get timezone offset (negated getTimezoneOffset for correct calculation)
+			const timezoneOffset = -new Date().getTimezoneOffset();
+			
 			console.log('[Conversation] Recording usage - Duration:', actualDuration, 'seconds, Call start:', new Date(callStartTimeRef.current).toISOString());
 			
 			// Record usage to backend
@@ -487,7 +494,8 @@ export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, c
 					'Content-Type': 'application/json'
 				},
 				body: JSON.stringify({
-					durationSeconds: actualDuration
+					durationSeconds: actualDuration,
+					timezoneOffset: timezoneOffset
 				})
 			})
 				.then(res => {

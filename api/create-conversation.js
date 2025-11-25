@@ -69,8 +69,14 @@ export default async function handler(req, res) {
       // Get user identifier from cookie (generates new one if doesn't exist)
       const identifier = getOrCreateUserId(req, res)
       
-      const canStart = await usageStorage.canStartSession(identifier)
-      const usage = await usageStorage.getUsage(identifier)
+      // Get timezone offset from request body (in minutes, from browser's getTimezoneOffset())
+      const { timezoneOffset } = req.body
+      const timezoneOffsetMinutes = timezoneOffset !== undefined 
+        ? parseInt(timezoneOffset, 10) 
+        : null
+      
+      const canStart = await usageStorage.canStartSession(identifier, timezoneOffsetMinutes)
+      const usage = await usageStorage.getUsage(identifier, timezoneOffsetMinutes)
       
       if (!canStart) {
         console.log('[create-conversation] Daily usage limit reached for:', identifier, 'Used:', usage.usedSeconds, 'seconds')

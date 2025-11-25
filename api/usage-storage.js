@@ -51,8 +51,33 @@ function normalizeRemainingSeconds(remainingSeconds) {
   return remainingSeconds < MIN_USABLE_SECONDS ? 0 : remainingSeconds;
 }
 
-function getTodayKey(identifier) {
-  const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+function getTodayKey(identifier, timezoneOffsetMinutes = null) {
+  let today;
+  
+  if (timezoneOffsetMinutes !== null) {
+    // Calculate date in user's timezone
+    // timezoneOffsetMinutes is from -getTimezoneOffset() (client sends negated value)
+    // getTimezoneOffset() returns positive for timezones behind UTC (e.g., EST = 300)
+    // So -getTimezoneOffset() gives us negative values (e.g., EST = -300)
+    // To convert UTC to local: localTime = utcTime + offset
+    // For EST: localTime = utcTime + (-300 minutes) = utcTime - 5 hours ✓
+    const now = new Date();
+    const utcTime = now.getTime();
+    // Add the offset to get local time
+    const localTime = utcTime + (timezoneOffsetMinutes * 60 * 1000);
+    const localDate = new Date(localTime);
+    
+    // Get UTC components of the adjusted time (which represents local time)
+    // Since we've already adjusted the timestamp, UTC methods give us local date
+    const year = localDate.getUTCFullYear();
+    const month = String(localDate.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(localDate.getUTCDate()).padStart(2, '0');
+    today = `${year}-${month}-${day}`;
+  } else {
+    // Fallback to UTC if no timezone provided (for backward compatibility)
+    today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+  }
+  
   return `${identifier}:${today}`;
 }
 
@@ -88,9 +113,9 @@ async function setUsageInKV(key, value) {
   }
 }
 
-export async function getUsage(identifier) {
+export async function getUsage(identifier, timezoneOffsetMinutes = null) {
   await initKV(); // Initialize KV if not already done
-  const key = getTodayKey(identifier);
+  const key = getTodayKey(identifier, timezoneOffsetMinutes);
   
   let usage;
   if (kv) {
@@ -118,19 +143,19 @@ export async function getUsage(identifier) {
   return result;
 }
 
-export async function canStartSession(identifier) {
-  const usage = await getUsage(identifier);
+export async function canStartSession(identifier, timezoneOffsetMinutes = null) {
+  const usage = await getUsage(identifier, timezoneOffsetMinutes);
   return usage.remainingSeconds >= MIN_USABLE_SECONDS;
 }
 
-export async function getRemainingTime(identifier) {
-  const usage = await getUsage(identifier);
+export async function getRemainingTime(identifier, timezoneOffsetMinutes = null) {
+  const usage = await getUsage(identifier, timezoneOffsetMinutes);
   return usage.remainingSeconds;
 }
 
-export async function recordSession(identifier, durationSeconds) {
+export async function recordSession(identifier, durationSeconds, timezoneOffsetMinutes = null) {
   await initKV(); // Initialize KV if not already done
-  const key = getTodayKey(identifier);
+  const key = getTodayKey(identifier, timezoneOffsetMinutes);
   
   // Get existing usage
   let usage;
@@ -177,8 +202,8 @@ export async function recordSession(identifier, durationSeconds) {
   return result;
 }
 
-export async function reserveTime(identifier, requestedSeconds) {
-  const usage = await getUsage(identifier);
+export async function reserveTime(identifier, requestedSeconds, timezoneOffsetMinutes = null) {
+  const usage = await getUsage(identifier, timezoneOffsetMinutes);
   const remaining = usage.remainingSeconds; // Already normalized by getUsage
   const reserved = Math.min(requestedSeconds, remaining);
   const remainingAfterReserve = normalizeRemainingSeconds(remaining - reserved);

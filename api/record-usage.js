@@ -35,7 +35,7 @@ export default async function handler(req, res) {
   try {
     const usageStorage = await import('./usage-storage.js')
     const { getOrCreateUserId } = await import('./cookie-utils.js')
-    const { durationSeconds } = req.body
+    const { durationSeconds, timezoneOffset } = req.body
     
     if (typeof durationSeconds !== 'number' || durationSeconds < 0) {
       return res.status(400).json({ error: 'Invalid durationSeconds' })
@@ -44,9 +44,14 @@ export default async function handler(req, res) {
     // Get user identifier from cookie (generates new one if doesn't exist)
     const identifier = getOrCreateUserId(req, res)
     
-    console.log('[record-usage] Recording session for user:', identifier.substring(0, 20) + '...', 'Duration:', durationSeconds, 'seconds')
+    // Get timezone offset from request body (in minutes, from browser's getTimezoneOffset())
+    const timezoneOffsetMinutes = timezoneOffset !== undefined 
+      ? parseInt(timezoneOffset, 10) 
+      : null
     
-    const result = await usageStorage.recordSession(identifier, durationSeconds)
+    console.log('[record-usage] Recording session for user:', identifier.substring(0, 20) + '...', 'Duration:', durationSeconds, 'seconds', 'Timezone offset:', timezoneOffsetMinutes)
+    
+    const result = await usageStorage.recordSession(identifier, durationSeconds, timezoneOffsetMinutes)
     
     console.log('[record-usage] Session recorded - Used:', result.usedSeconds, 'Remaining:', result.remainingSeconds)
     

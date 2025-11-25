@@ -94,8 +94,11 @@ export const VideoCallWindow = ({
   // Initialize timer when replica is ready (not during haircheck)
   useEffect(() => {
     if (isReplicaReady && !timerIntervalRef.current) {
+      // Get timezone offset (negated getTimezoneOffset for correct calculation)
+      const timezoneOffset = -new Date().getTimezoneOffset();
+      
       // Fetch remaining time from usage API
-      fetch('/api/check-usage', {
+      fetch(`/api/check-usage?timezoneOffset=${timezoneOffset}`, {
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json'

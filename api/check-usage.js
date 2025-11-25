@@ -42,8 +42,16 @@ export default async function handler(req, res) {
     // This ensures the cookie is set before res.json() is called
     const identifier = getOrCreateUserId(req, res)
     
-    const usage = await usageStorage.getUsage(identifier)
-    const canStart = await usageStorage.canStartSession(identifier)
+    // Get timezone offset from query parameter (in minutes, from browser's getTimezoneOffset())
+    // Note: getTimezoneOffset() returns positive for behind UTC, negative for ahead
+    // We'll accept it as-is and use it to calculate the date
+    const timezoneOffsetParam = req.query.timezoneOffset
+    const timezoneOffsetMinutes = timezoneOffsetParam !== undefined 
+      ? parseInt(timezoneOffsetParam, 10) 
+      : null
+    
+    const usage = await usageStorage.getUsage(identifier, timezoneOffsetMinutes)
+    const canStart = await usageStorage.canStartSession(identifier, timezoneOffsetMinutes)
     
     console.log('[check-usage] User:', identifier.substring(0, 20) + '...', 'Used:', usage.usedSeconds, 'Remaining:', usage.remainingSeconds, 'Can start:', canStart)
     
