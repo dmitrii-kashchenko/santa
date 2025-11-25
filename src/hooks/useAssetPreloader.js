@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
-import { getAllVideoPaths, getAllImagePaths } from '../utils/assetPaths'
+import { getAllVideoPaths, getAllImagePaths, getAllIconPaths, getAllSoundPaths } from '../utils/assetPaths'
 
 /**
- * Custom hook for preloading videos and images
- * Ensures minimum loading time of 1 second
+ * Custom hook for preloading videos, images, icons, and sounds
+ * Ensures minimum loading time of 1 second and proper caching
  */
 export const useAssetPreloader = () => {
   const [isLoading, setIsLoading] = useState(true)
@@ -14,6 +14,8 @@ export const useAssetPreloader = () => {
 
     const videos = getAllVideoPaths()
     const images = getAllImagePaths()
+    const icons = getAllIconPaths()
+    const sounds = getAllSoundPaths()
 
     // Preload videos - ensure they're fully buffered
     const videoPromises = videos.map(src => {
@@ -115,8 +117,59 @@ export const useAssetPreloader = () => {
       })
     })
 
+    // Preload icons (SVGs can be loaded as images)
+    const iconPromises = icons.map(src => {
+      return new Promise((resolve) => {
+        const img = new Image()
+        img.onload = () => resolve()
+        img.onerror = () => resolve() // Resolve even on error to not block loading
+        img.src = src
+      })
+    })
+
+    // Preload sounds - ensure they're fully loaded and cached
+    const soundPromises = sounds.map(src => {
+      return new Promise((resolve) => {
+        const audio = new Audio()
+        audio.preload = 'auto'
+        
+        let resolved = false
+        
+        const doResolve = () => {
+          if (!resolved) {
+            resolved = true
+            // Keep audio element in memory for caching but remove event listeners
+            audio.oncanplaythrough = null
+            audio.onerror = null
+            resolve()
+          }
+        }
+        
+        const handleCanPlayThrough = () => {
+          // Audio is ready to play through without stopping
+          doResolve()
+        }
+        
+        const handleError = () => {
+          // Resolve even on error to not block loading
+          doResolve()
+        }
+        
+        audio.addEventListener('canplaythrough', handleCanPlayThrough, { once: true })
+        audio.onerror = handleError
+        
+        // Timeout fallback (5 seconds max per sound)
+        setTimeout(() => {
+          doResolve()
+        }, 5000)
+        
+        audio.src = src
+        audio.load() // Force load
+      })
+    })
+
     // Wait for all assets to load, then ensure minimum 1 second has passed
-    Promise.all([...videoPromises, ...imagePromises]).then(() => {
+    Promise.all([...videoPromises, ...imagePromises, ...iconPromises, ...soundPromises]).then(() => {
       const elapsed = Date.now() - startTime
       const remainingTime = Math.max(0, minLoadTime - elapsed)
       

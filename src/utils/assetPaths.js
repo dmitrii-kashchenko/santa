@@ -9,7 +9,10 @@ export const ASSET_PATHS = {
   },
   images: {
     backgroundPlaceholder: '/processed-image (81).png',
+    candy: '/candy.png',
+    closeButton: '/close_button.svg',
     elf: '/elf.png',
+    elfDead: '/elf-dead.png',
     elfDown: '/elfdown.png',
     elfUp: '/elfup.png',
     footerLogo: '/Frame 2147229103.png',
@@ -23,7 +26,8 @@ export const ASSET_PATHS = {
     santa: '/santa2.png',
     midTree: '/mid-tree.png',
     shortTree: '/short-tree.png',
-    tallTree: '/tall-tree.png'
+    tallTree: '/tall-tree.png',
+    snowflake: '/snowflake.png'
   },
   icons: {
     mic: '/icons/mic.svg',
@@ -38,8 +42,7 @@ export const ASSET_PATHS = {
     moodSadFill: '/icons/solid-mood-sad.svg',
     xIcon: '/icons/icon_x.svg',
     linkedinIcon: '/icons/icon_linkedin.svg',
-    facebookIcon: '/icons/icon_facebook.svg',
-    moodSadFill: '/icons/solid-mood-sad.svg'
+    facebookIcon: '/icons/icon_facebook.svg'
   },
   sounds: {
     backgroundMusic: '/sounds/background_music.mp3',
@@ -56,4 +59,18 @@ export const getAllVideoPaths = () => Object.values(ASSET_PATHS.videos)
 
 // Helper function to get all image paths for preloading
 export const getAllImagePaths = () => Object.values(ASSET_PATHS.images)
+
+// Helper function to get all icon paths for preloading
+export const getAllIconPaths = () => Object.values(ASSET_PATHS.icons)
+
+// Helper function to get all sound paths for preloading
+export const getAllSoundPaths = () => Object.values(ASSET_PATHS.sounds)
+
+// Helper function to get all asset paths (videos, images, icons, sounds) for preloading
+export const getAllAssetPaths = () => ({
+  videos: getAllVideoPaths(),
+  images: getAllImagePaths(),
+  icons: getAllIconPaths(),
+  sounds: getAllSoundPaths()
+})
 

@@ -7,8 +7,12 @@ export const LoadingScreen = ({ selectedLanguage = 'en' }) => {
   return (
     <div className={styles.loadingScreen}>
       <div className={styles.loadingContent}>
-        <div className={styles.loadingSpinner}></div>
-        <div className={styles.loadingText}>{t('loading')}</div>
+        <img 
+          src="/snowflake.png" 
+          alt="Loading" 
+          className={styles.snowflakeIcon}
+        />
+        <div className={styles.loadingText}>{t('loadingHolidayMagic')}</div>
       </div>
     </div>
   )

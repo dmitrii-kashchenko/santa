@@ -18,13 +18,11 @@
   gap: 20px;
 }
 
-.loadingSpinner {
-  width: 50px;
-  height: 50px;
-  border: 4px solid #D0D0D0;
-  border-top-color: #333;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
+.snowflakeIcon {
+  width: 60px;
+  height: 60px;
+  animation: spin 2s linear infinite;
+  display: block;
 }
 
 @keyframes spin {
