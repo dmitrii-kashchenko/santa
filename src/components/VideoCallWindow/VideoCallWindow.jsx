@@ -31,6 +31,7 @@ export const VideoCallWindow = ({
   const conversationRef = useRef(null)
   const timerIntervalRef = useRef(null)
   const [isReplicaReady, setIsReplicaReady] = useState(false)
+  const hasEndedOnExitRef = useRef(false)
   const t = useTranslation(selectedLanguage)
   const { playButtonClick, muteMusic } = useSound()
 
@@ -187,6 +188,91 @@ export const VideoCallWindow = ({
     console.log('[VideoCallWindow] Conversation onLeave called')
     setIsCallEnded(true)
   }
+
+  // End call when user exits Safari/closes tab/phone or switches tabs
+  useEffect(() => {
+    // Reset the exit flag when call state changes
+    if (!isAnswered || !isHairCheckComplete) {
+      hasEndedOnExitRef.current = false
+      return
+    }
+
+    // Only set up listeners if call is active
+    if (isCallEnded) {
+      hasEndedOnExitRef.current = false
+      return
+    }
+
+    const endCallOnExit = () => {
+      // Prevent multiple calls to end using ref (avoids stale closure issues)
+      if (hasEndedOnExitRef.current) {
+        return
+      }
+      hasEndedOnExitRef.current = true
+      console.log('[VideoCallWindow] User exiting/switching tabs/turning off device - ending call')
+      if (conversationRef.current && conversationRef.current.end) {
+        conversationRef.current.end()
+      } else {
+        handleConversationLeave()
+      }
+    }
+
+    // Handle page unload (most reliable for device shutdown, app closure, tab closure)
+    // This fires when the page is being unloaded, including when device is turned off
+    const handlePageHide = (e) => {
+      // e.persisted is false when page is being unloaded (not just cached)
+      // This catches device shutdown, browser closure, tab closure
+      if (!e.persisted) {
+        endCallOnExit()
+      }
+    }
+
+    // Handle before unload (desktop browsers, tab closure)
+    const handleBeforeUnload = () => {
+      endCallOnExit()
+    }
+
+    // Handle visibility change (tab switch, app backgrounding)
+    // End call immediately when tab becomes hidden
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        endCallOnExit()
+      }
+    }
+
+    // Handle freeze event (mobile devices - fires when device is about to freeze/sleep)
+    // This is especially important for mobile devices being turned off or going to sleep
+    // Part of Page Lifecycle API (may not be supported in all browsers)
+    const handleFreeze = () => {
+      endCallOnExit()
+    }
+
+    // Add event listeners
+    window.addEventListener('pagehide', handlePageHide)
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    // Freeze event for mobile device shutdown/sleep (Page Lifecycle API)
+    // Note: May not be supported in all browsers, but pagehide should catch device shutdown
+    if ('onfreeze' in document) {
+      document.addEventListener('freeze', handleFreeze)
+    }
+    if ('onfreeze' in window) {
+      window.addEventListener('freeze', handleFreeze)
+    }
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('pagehide', handlePageHide)
+      window.removeEventListener('beforeunload', handleBeforeUnload)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+      if ('onfreeze' in document) {
+        document.removeEventListener('freeze', handleFreeze)
+      }
+      if ('onfreeze' in window) {
+        window.removeEventListener('freeze', handleFreeze)
+      }
+    }
+  }, [isAnswered, isHairCheckComplete, isCallEnded])
 
   const handleClose = (e) => {
     e.stopPropagation()
