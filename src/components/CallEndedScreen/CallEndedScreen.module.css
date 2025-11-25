@@ -135,6 +135,17 @@
   }
 }
 
+.callEndedContainer.errorContainer {
+  align-content: center;
+}
+
+/* Desktop - min width 769px */
+@media (min-width: 769px) {
+  .callEndedContainer {
+    align-content: center;
+  }
+}
+
 /* max width 768px */
 @media (max-width: 768px) {
   .callEndedContainer {

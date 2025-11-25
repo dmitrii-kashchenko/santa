@@ -1,20 +1,15 @@
 import { useState, useEffect } from 'react'
-import { getAllVideoPaths, getAllImagePaths, getAllIconPaths, getAllSoundPaths } from '../utils/assetPaths'
+import { getAllVideoPaths, getAllSoundPaths } from '../utils/assetPaths'
 
 /**
- * Custom hook for preloading videos, images, icons, and sounds
- * Ensures minimum loading time of 1 second and proper caching
+ * Custom hook for preloading videos and sounds
+ * Hides loading screen once all assets are ready
  */
 export const useAssetPreloader = () => {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    const startTime = Date.now()
-    const minLoadTime = 1000 // Minimum 1 second loading screen
-
     const videos = getAllVideoPaths()
-    const images = getAllImagePaths()
-    const icons = getAllIconPaths()
     const sounds = getAllSoundPaths()
 
     // Preload videos - ensure they're fully buffered
@@ -107,26 +102,6 @@ export const useAssetPreloader = () => {
       })
     })
 
-    // Preload images
-    const imagePromises = images.map(src => {
-      return new Promise((resolve) => {
-        const img = new Image()
-        img.onload = () => resolve()
-        img.onerror = () => resolve() // Resolve even on error to not block loading
-        img.src = src
-      })
-    })
-
-    // Preload icons (SVGs can be loaded as images)
-    const iconPromises = icons.map(src => {
-      return new Promise((resolve) => {
-        const img = new Image()
-        img.onload = () => resolve()
-        img.onerror = () => resolve() // Resolve even on error to not block loading
-        img.src = src
-      })
-    })
-
     // Preload sounds - ensure they're fully loaded and cached
     const soundPromises = sounds.map(src => {
       return new Promise((resolve) => {
@@ -168,14 +143,9 @@ export const useAssetPreloader = () => {
       })
     })
 
-    // Wait for all assets to load, then ensure minimum 1 second has passed
-    Promise.all([...videoPromises, ...imagePromises, ...iconPromises, ...soundPromises]).then(() => {
-      const elapsed = Date.now() - startTime
-      const remainingTime = Math.max(0, minLoadTime - elapsed)
-      
-      setTimeout(() => {
-        setIsLoading(false)
-      }, remainingTime)
+    // Wait for all assets to load, then hide loading screen
+    Promise.all([...videoPromises, ...soundPromises]).then(() => {
+      setIsLoading(false)
     })
   }, [])
 
