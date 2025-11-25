@@ -224,7 +224,23 @@ export const HairCheck = memo(({ isJoinBtnLoading = false, onJoin, onCancel, con
 				)}
 				<footer>
 					<p className={styles.legalText}>
-						{t('legalText')}
+						By starting a conversation, I accept the Tavus{' '}
+						<a 
+							href="https://www.tavus.io/terms-of-service" 
+							target="_blank" 
+							rel="noopener noreferrer"
+						>
+							Terms of Use
+						</a>
+						{' '}and acknowledge the{' '}
+						<a 
+							href="https://www.tavus.io/privacy-policy" 
+							target="_blank" 
+							rel="noopener noreferrer"
+						>
+							Privacy Policy
+						</a>
+						.
 					</p>
 				</footer>
 			</aside>
