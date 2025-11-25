@@ -38,7 +38,7 @@
 }
 
 .iconTitle {
-  font-family: 'Berkeley Mono', sans-serif;
+  font-family: 'FK Raster Grotesk Compact', sans-serif;
   font-size: 12px;
   font-weight: bold;
   color: #000;
@@ -58,7 +58,7 @@
 @media (max-width: 768px) {
   .windowIcon {
     position: fixed !important;
-    bottom: 125px !important;
+    bottom: calc(125px + env(safe-area-inset-bottom) + 40px) !important;
     left: auto !important;
     right: auto !important;
     top: auto !important;

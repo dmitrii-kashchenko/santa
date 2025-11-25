@@ -39,7 +39,7 @@ export const translations = {
     // Call Ended Screen
     santaIsNowPal: "Continue the conversation",
     santaPalDescription: "Its not just a video call- Santa can text, call, and talk face to face anytime. He remembers your conversations, and can even help make christmas lists, get you on the nice list, and spread Christmas cheer.",
-    continueConversation: 'Register for free',
+    continueConversation: 'Sign up for free',
     
     // Flappy Santa
     gameOver: 'Game Over!',
@@ -54,7 +54,7 @@ export const translations = {
     
     // Hair Check
     meetSanta: 'You’re about to meet Santa',
-    meetSantaDescription: "He can see and hear you, and you’ll see him. It's just like Santa’s FaceTiming you from the North Pole!",
+    meetSantaDescription: "He can see and hear you, and you’ll see him. It's just like Santa’s face-timing you from the North Pole!",
     santaHasJoined: 'SANTA HAS JOINED THE SESSION',
     cancel: 'Cancel',
     joinVideoCall: 'JOIN VIDEO CALL',

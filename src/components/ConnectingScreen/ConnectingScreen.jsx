@@ -54,7 +54,7 @@ export const ConnectingScreen = ({ error, selectedLanguage = 'en' }) => {
             <h1>{errorContent.title}</h1>
             <p>{errorContent.description}</p>
             <a href="http://platform.tavus.io/auth/sign-up?source=santa_demo">
-              Register for free
+              Sign up for free
             </a>
           </section>
           

@@ -30,10 +30,20 @@
 }
 
 @media (max-width: 768px) {
+  .mobilePoweredImage {
+    max-height: 40px;
+  }
+
+  .mobilePoweredImage img {
+    max-height: 40px;
+  }
+}
+
+@media (max-width: 768px) {
   .mobilePowered {
     display: flex;
-    bottom: 30px;
-    padding-bottom: calc(30px + env(safe-area-inset-bottom));
+    bottom: calc(30px + env(safe-area-inset-bottom) + 50px);
+    padding-bottom: 16px;
   }
 
   .mobilePowered.hidden {
