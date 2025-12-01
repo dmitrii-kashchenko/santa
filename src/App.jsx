@@ -5,7 +5,6 @@ import './App.css'
 import { useAssetPreloader } from './hooks/useAssetPreloader'
 import { useTavusConversation } from './hooks/useTavusConversation'
 import { LoadingScreen } from './components/LoadingScreen/LoadingScreen'
-import { GeoblockedScreen } from './components/GeoblockedScreen/GeoblockedScreen'
 import { Background } from './components/Background/Background'
 import { Header } from './components/Header/Header'
 import { HeroText } from './components/HeroText/HeroText'
@@ -23,7 +22,6 @@ function App() {
   // Check for URL parameter to simulate call ended screen
   const urlParams = new URLSearchParams(window.location.search)
   const simulateCallEnded = urlParams.get('simulateCallEnded') === 'true'
-  const isWafGeoblocked = urlParams.get('comingsoon') === 'true'
   
   const [isMinimized, setIsMinimized] = useState(false)
   const [isFlappyMinimized, setIsFlappyMinimized] = useState(true)
@@ -68,11 +66,6 @@ function App() {
   // Show loading screen
   if (isLoading) {
     return <LoadingScreen selectedLanguage={selectedLanguage} />
-  }
-
-  // Show geoblocked screen if user is geoblocked (from WAF redirect)
-  if (isWafGeoblocked) {
-    return <GeoblockedScreen selectedLanguage={selectedLanguage} />
   }
 
   return (

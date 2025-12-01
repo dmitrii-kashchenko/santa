@@ -88,80 +88,45 @@ export const VideoCallWindow = ({
 
   // Initialize timer when replica is ready (not during haircheck)
   useEffect(() => {
-    if (isReplicaReady && !timerIntervalRef.current) {
-      // Get timezone offset (negated getTimezoneOffset for correct calculation)
-      const timezoneOffset = -new Date().getTimezoneOffset();
+    // Only start timer if all conditions are met and timer isn't already running
+    if (isReplicaReady && !timerIntervalRef.current && isAnswered && isHairCheckComplete && !isCallEnded) {
+      // Set countdown to 3 minutes (180 seconds)
+      setCountdown(180)
+      console.log('[VideoCallWindow] Replica is ready - starting timer with 3 minute countdown (180 seconds)')
+      console.log('[VideoCallWindow] Timer conditions:', { isReplicaReady, isAnswered, isHairCheckComplete, isCallEnded })
       
-      // Fetch remaining time from usage API
-      fetch(`/api/check-usage?timezoneOffset=${timezoneOffset}`, {
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      })
-        .then(res => {
-          // Check if Set-Cookie header is present (only sent when creating NEW cookie)
-          // If cookie already exists, Set-Cookie won't be in response - that's normal!
-          const setCookieHeader = res.headers.get('Set-Cookie')
-          const xCookieSet = res.headers.get('X-Cookie-Set')
-          const xUserId = res.headers.get('X-User-ID')
-          
-          console.log('[VideoCallWindow] check-usage response status:', res.status)
-          
-          // Set-Cookie only appears when creating a NEW cookie
-          // If cookie already exists (which is normal), Set-Cookie won't be present
-          if (setCookieHeader || xCookieSet) {
-            console.log('[VideoCallWindow] New cookie created - Set-Cookie:', !!setCookieHeader, 'X-Cookie-Set:', xCookieSet, 'X-User-ID:', xUserId)
-          } else {
-            console.log('[VideoCallWindow] Using existing cookie (this is normal if you already have a cookie)')
+      // Start countdown timer
+      timerIntervalRef.current = setInterval(() => {
+        setCountdown(prev => {
+          const newValue = prev <= 1 ? 0 : prev - 1
+          if (newValue % 10 === 0 || newValue <= 10) {
+            console.log(`[VideoCallWindow] Countdown: ${newValue} seconds remaining`)
           }
-          
-          if (!res.ok) {
-            throw new Error(`HTTP ${res.status}: ${res.statusText}`)
+          if (newValue === 0) {
+            console.log('[VideoCallWindow] Countdown reached 0 - call should end')
+            // Clear interval when countdown reaches 0
+            if (timerIntervalRef.current) {
+              clearInterval(timerIntervalRef.current)
+              timerIntervalRef.current = null
+            }
           }
-          return res.json()
+          return newValue
         })
-        .then(data => {
-          const remainingSeconds = Math.max(0, data.remainingSeconds || 180)
-          setCountdown(remainingSeconds)
-          console.log('[VideoCallWindow] Replica is ready - starting timer with remaining time:', remainingSeconds, 'seconds', 'Used:', data.usedSeconds, 'Can start:', data.canStart)
-          
-          // Start countdown timer (only if not already running)
-          if (!timerIntervalRef.current) {
-            timerIntervalRef.current = setInterval(() => {
-              setCountdown(prev => {
-                if (prev <= 1) {
-                  return 0
-                }
-                return prev - 1
-              })
-            }, 1000)
-          }
-        })
-        .catch(error => {
-          console.error('[VideoCallWindow] Failed to fetch remaining time:', error)
-          // Fallback to 180 seconds if API call fails
-          setCountdown(180)
-          
-          // Start countdown timer even if API call fails (only if not already running)
-          if (!timerIntervalRef.current) {
-            timerIntervalRef.current = setInterval(() => {
-              setCountdown(prev => {
-                if (prev <= 1) {
-                  return 0
-                }
-                return prev - 1
-              })
-            }, 1000)
-          }
-        })
+      }, 1000)
+      
+      console.log('[VideoCallWindow] Timer interval started')
+    } else if (isReplicaReady && timerIntervalRef.current) {
+      console.log('[VideoCallWindow] Timer already running, skipping setup')
+    } else {
+      console.log('[VideoCallWindow] Timer not started - conditions:', { isReplicaReady, isAnswered, isHairCheckComplete, isCallEnded, hasTimer: !!timerIntervalRef.current })
     }
-  }, [isReplicaReady])
+  }, [isReplicaReady, isAnswered, isHairCheckComplete, isCallEnded])
 
   // Cleanup timer when call ends or is cancelled
   useEffect(() => {
     if (!isAnswered || isCallEnded) {
       if (timerIntervalRef.current) {
+        console.log('[VideoCallWindow] Cleaning up timer - call ended or cancelled')
         clearInterval(timerIntervalRef.current)
         timerIntervalRef.current = null
       }
@@ -183,7 +148,8 @@ export const VideoCallWindow = ({
     setIsCallEnded(true)
   }
 
-  // End call when user exits Safari/closes tab/phone or switches tabs
+  // End call when user closes tab/browser or device shuts down
+  // Note: Tab switching no longer ends the call - user can switch tabs freely
   useEffect(() => {
     // Reset the exit flag when call state changes
     if (!isAnswered || !isHairCheckComplete) {
@@ -203,7 +169,7 @@ export const VideoCallWindow = ({
         return
       }
       hasEndedOnExitRef.current = true
-      console.log('[VideoCallWindow] User exiting/switching tabs/turning off device - ending call')
+      console.log('[VideoCallWindow] User closing tab/browser or device shutting down - ending call')
       if (conversationRef.current && conversationRef.current.end) {
         conversationRef.current.end()
       } else {
@@ -226,14 +192,6 @@ export const VideoCallWindow = ({
       endCallOnExit()
     }
 
-    // Handle visibility change (tab switch, app backgrounding)
-    // End call immediately when tab becomes hidden
-    const handleVisibilityChange = () => {
-      if (document.hidden) {
-        endCallOnExit()
-      }
-    }
-
     // Handle freeze event (mobile devices - fires when device is about to freeze/sleep)
     // This is especially important for mobile devices being turned off or going to sleep
     // Part of Page Lifecycle API (may not be supported in all browsers)
@@ -242,9 +200,9 @@ export const VideoCallWindow = ({
     }
 
     // Add event listeners
+    // Note: visibilitychange is NOT included - tab switching no longer ends the call
     window.addEventListener('pagehide', handlePageHide)
     window.addEventListener('beforeunload', handleBeforeUnload)
-    document.addEventListener('visibilitychange', handleVisibilityChange)
     // Freeze event for mobile device shutdown/sleep (Page Lifecycle API)
     // Note: May not be supported in all browsers, but pagehide should catch device shutdown
     if ('onfreeze' in document) {
@@ -258,7 +216,6 @@ export const VideoCallWindow = ({
     return () => {
       window.removeEventListener('pagehide', handlePageHide)
       window.removeEventListener('beforeunload', handleBeforeUnload)
-      document.removeEventListener('visibilitychange', handleVisibilityChange)
       if ('onfreeze' in document) {
         document.removeEventListener('freeze', handleFreeze)
       }

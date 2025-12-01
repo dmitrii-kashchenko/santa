@@ -55,35 +55,86 @@ export const useTavusConversation = (isAnswered, shouldPreload = false, selected
 
           console.log('[useTavusConversation] Making API request to serverless function...')
           
-          // Add ?bypassUsage=true to bypass daily usage limits
-          const urlParams = new URLSearchParams(window.location.search)
-          const bypassUsage = urlParams.get('bypassUsage') === 'true'
-          const apiUrl = bypassUsage 
-            ? '/api/create-conversation?bypassUsage=true'
-            : '/api/create-conversation'
+          const apiUrl = '/api/create-conversation'
           
           // Get timezone offset (negated getTimezoneOffset for correct calculation)
           const timezoneOffset = -new Date().getTimezoneOffset();
           
           // Call serverless function instead of Tavus API directly
-          const response = await fetch(apiUrl, {
-            method: 'POST',
-            credentials: 'include',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              custom_greeting: customGreeting,
-              language: selectedLanguage,
-              timezoneOffset: timezoneOffset
+          // Add timeout to prevent hanging
+          const controller = new AbortController()
+          const timeoutId = setTimeout(() => {
+            controller.abort()
+            console.error('[useTavusConversation] Request timeout after 30 seconds')
+          }, 30000) // 30 second timeout
+          
+          let response
+          try {
+            console.log('[useTavusConversation] Fetching:', apiUrl)
+            console.log('[useTavusConversation] Request body:', { custom_greeting: customGreeting.substring(0, 50) + '...', language: selectedLanguage, timezoneOffset })
+            
+            response = await fetch(apiUrl, {
+              method: 'POST',
+              credentials: 'include',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                custom_greeting: customGreeting,
+                language: selectedLanguage,
+                timezoneOffset: timezoneOffset
+              }),
+              signal: controller.signal
             })
-          })
-
-          console.log('[useTavusConversation] API Response status:', response.status)
+            clearTimeout(timeoutId)
+            console.log('[useTavusConversation] API Response status:', response.status)
+            console.log('[useTavusConversation] API Response ok:', response.ok)
+            console.log('[useTavusConversation] API Response URL:', response.url)
+          } catch (fetchError) {
+            clearTimeout(timeoutId)
+            console.error('[useTavusConversation] Fetch error (network/CORS/timeout):', fetchError)
+            console.error('[useTavusConversation] Fetch error details:', {
+              message: fetchError.message,
+              stack: fetchError.stack,
+              name: fetchError.name,
+              isAbort: fetchError.name === 'AbortError'
+            })
+            
+            if (fetchError.name === 'AbortError') {
+              console.error('[useTavusConversation] Request was aborted (likely timeout)')
+              setError('unknown')
+            } else {
+              setError('unknown')
+            }
+            setIsGenerating(false)
+            return
+          }
           
           if (response.ok) {
-            const data = await response.json()
-            console.log('[useTavusConversation] API Response data:', data)
+            let data
+            try {
+              const responseText = await response.text()
+              console.log('[useTavusConversation] API Response text (first 200 chars):', responseText.substring(0, 200))
+              
+              // Check if response is HTML (error page) instead of JSON
+              if (responseText.trim().startsWith('<!')) {
+                console.error('[useTavusConversation] API returned HTML instead of JSON - likely 404 or error page')
+                console.error('[useTavusConversation] Full response:', responseText)
+                setError('unknown')
+                setIsGenerating(false)
+                return
+              }
+              
+              data = JSON.parse(responseText)
+              console.log('[useTavusConversation] API Response data:', data)
+            } catch (parseError) {
+              console.error('[useTavusConversation] Failed to parse API response as JSON:', parseError)
+              console.error('[useTavusConversation] Response might be HTML or malformed JSON')
+              setError('unknown')
+              setIsGenerating(false)
+              return
+            }
+            
             const url = data.conversation_url
             const id = data.conversation_id
             console.log('[useTavusConversation] Setting conversation URL:', url)
@@ -92,6 +143,7 @@ export const useTavusConversation = (isAnswered, shouldPreload = false, selected
               setConversationUrl(url)
             } else {
               console.error('[useTavusConversation] No conversation_url in response:', data)
+              setError('unknown')
             }
             if (id) {
               setConversationId(id)
@@ -107,12 +159,6 @@ export const useTavusConversation = (isAnswered, shouldPreload = false, selected
               errorData = { error: errorText }
             }
             console.error('[useTavusConversation] Failed to generate conversation URL:', response.status, errorData)
-            
-            // Handle daily limit (429 with daily_limit_reached error)
-            if (response.status === 429 && errorData.error === 'daily_limit_reached') {
-              setError('dailyLimitReached')
-              return
-            }
             
             // Handle 400 status code - check if it's max concurrency or another error
             if (response.status === 400) {
@@ -150,7 +196,16 @@ export const useTavusConversation = (isAnswered, shouldPreload = false, selected
           }
         } catch (error) {
           console.error('[useTavusConversation] Error generating conversation URL:', error)
+          console.error('[useTavusConversation] Error name:', error.name)
+          console.error('[useTavusConversation] Error message:', error.message)
           console.error('[useTavusConversation] Error stack:', error.stack)
+          console.error('[useTavusConversation] Full error object:', error)
+          
+          // Check if it's a network error
+          if (error.name === 'TypeError' && error.message.includes('fetch')) {
+            console.error('[useTavusConversation] Network error detected - check CORS, network connectivity, or if request was blocked')
+          }
+          
           setError('unknown')
         } finally {
           setIsGenerating(false)

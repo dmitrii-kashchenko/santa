@@ -1,10 +1,10 @@
 export const SANTA_GREETINGS = {
   "english": [
-    "Merry Christmas! Tell Santa what you'd like this year, and I'll check if you're on the Naughty or Nice list!",
-    "Hey... It's Santa! What's on your wish list? Let's see if you've been naughty or nice!",
-    "Merry Christmas! Share your wishes with Santa, and I'll let you know if you're on the Nice List!",
-    "Santa's here! What do you want for Christmas? Let's check your Naughty or Nice status!",
-    "Tell me your Christmas wishes, and I'll tell you if you've been naughty or nice!",
+    "Ho ho ho... it's Bad Santa! Tell me what you want this year, and I'll decide if you're naughty or nice!",
+    "Hey there... Bad Santa here! What's on your wish list? Let's see if you've been naughty enough for my list!",
+    "Bad Santa's in the house! Share your wishes, and I'll let you know if you made it to the Naughty List!",
+    "Bad Santa here! What do you want for Christmas? Let's check if you're naughty or nice... I'm hoping for naughty!",
+    "Tell me your Christmas wishes, and I'll tell you if you've been naughty or nice... I prefer naughty!",
   ],
   "chinese": [
     "圣诞快乐！这个假期你最想要的东西是什么？不要保留——我想听到全部！",

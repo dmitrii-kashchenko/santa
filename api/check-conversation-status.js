@@ -72,11 +72,16 @@ export default async function handler(req, res) {
     const hasReplica = conversationData.status === 'active' || conversationData.status === 'ready' || conversationData.status === 'live'
 
     console.log('[check-conversation-status] Conversation status:', conversationData.status, 'hasReplica:', hasReplica)
+    console.log('[check-conversation-status] Conversation data:', JSON.stringify(conversationData, null, 2))
+    console.log('[check-conversation-status] Persona ID in conversation:', conversationData.persona_id)
+    console.log('[check-conversation-status] Replica ID in conversation:', conversationData.replica_id)
 
     return res.status(200).json({
       hasReplica,
       status: conversationData.status,
-      conversation_id: conversationData.conversation_id || conversationData.id
+      conversation_id: conversationData.conversation_id || conversationData.id,
+      persona_id: conversationData.persona_id,
+      replica_id: conversationData.replica_id
     })
   } catch (error) {
     console.error('[check-conversation-status] Error:', error)

@@ -70,11 +70,12 @@
 .footerControlsTop {
 	display: flex;
 	align-items: stretch;
-	justify-content: stretch;
+	justify-content: flex-start;
 	gap: 0;
 	width: 100%;
 	padding: 0;
 	margin: 0;
+	min-height: 40px;
 }
 
 .footerControlsBottom {
@@ -126,8 +127,13 @@
 		border-right: 1px solid #4A4A4A;
 	}
 	
-	.controlButtonWrapper:last-child .controlButton {
-		border-right: none;
+	.controlButtonWrapper:last-of-type .controlButton {
+		border-right: 1px solid #4A4A4A;
+	}
+	
+	.leaveButton {
+		width: 40px;
+		height: 100%;
 	}
 }
 
@@ -143,13 +149,14 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	flex: 1;
+	flex: 1 1 0;
+	min-width: 0;
 	padding: 8px 12px;
 	background: #EAE5DE;
 	border: none;
 	border-right: 1px solid #4A4A4A;
 	border-radius: 0;
-	height: 100%;
+	min-height: 40px;
 	box-sizing: border-box;
 }
 
@@ -164,13 +171,14 @@
 
 .controlButtonWrapper {
 	position: relative;
-	flex: 1;
+	flex: 1 1 0;
+	min-width: 0;
 	display: flex;
 	justify-content: stretch;
 }
 
-.controlButtonWrapper:last-child .controlButton {
-	border-right: none;
+.controlButtonWrapper:last-of-type .controlButton {
+	border-right: 1px solid #4A4A4A;
 }
 
 .controlButton {
@@ -187,7 +195,7 @@
 	font-size: 12px;
 	cursor: pointer;
 	white-space: nowrap;
-	height: 100%;
+	min-height: 40px;
 	box-sizing: border-box;
 	width: 100%;
 	justify-content: center;
@@ -303,24 +311,31 @@
 }
 
 .leaveButton {
-	background: #DC143C;
+	background: #DC143C !important;
 	color: white;
-	border: 1px solid #4A4A4A;
+	border: none;
+	border-left: 1px solid #4A4A4A;
 	cursor: pointer;
-	height: 32px;
-	width: 32px;
+	min-height: 40px;
+	height: 100%;
+	width: 40px;
+	min-width: 40px;
+	max-width: 40px;
 	border-radius: 0;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	flex-shrink: 0;
+	flex-grow: 0;
 	padding: 0;
+	margin: 0;
 	box-sizing: border-box;
+	overflow: hidden;
 }
 
 .leaveButton:hover {
 	opacity: 0.9;
-	background: #B22222;
+	background: #B22222 !important;
 }
 
 .leaveButton svg {

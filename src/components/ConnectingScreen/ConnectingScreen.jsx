@@ -7,31 +7,22 @@ export const ConnectingScreen = ({ error, selectedLanguage = 'en' }) => {
   const t = useTranslation(selectedLanguage)
   
   const getErrorContent = () => {
-    if (error === 'dailyLimitReached') {
-      return {
-        title: "Santa had to go back to his workshop",
-        description: "Sorry - Santa had to go back to his workshop. Come back again and he'll be ready to chat. In the meantime, make Santa your PAL and continue talking to Santa in ANY modality, text, call, or face-to-face. He remembers your conversations, reaches out on his own, and even searches the internet to help you find the perfect gift."
-      }
-    }
     if (error === 'maxConcurrency') {
       return {
-        title: "Santa's busy with his elves",
-        description: "Santa's busy with his elves right now, please try again later. While you wait, make Santa your PAL and continue talking to Santa in ANY modality, text, call, or face-to-face. He remembers your conversations, reaches out on his own, and even searches the internet to help you find the perfect gift."
+        title: "Bad Santa's busy with his elves",
+        description: "Bad Santa's busy with his elves right now, please try again later. While you wait, make Bad Santa your PAL and continue talking to Bad Santa in ANY modality, text, call, or face-to-face. He remembers your conversations, reaches out on his own, and even searches the internet to help you find the perfect gift."
       }
     }
     if (error === 'apiError' || error === 'unknown') {
       return {
-        title: "Unable to connect to Santa",
-        description: "We're having trouble connecting to the North Pole right now. Please try again later. In the meantime, make Santa your PAL and continue talking to Santa in ANY modality, text, call, or face-to-face. He remembers your conversations, reaches out on his own, and even searches the internet to help you find the perfect gift."
+        title: "Unable to connect to Bad Santa",
+        description: "We're having trouble connecting to the South Pole right now. Please try again later. In the meantime, make Bad Santa your PAL and continue talking to Bad Santa in ANY modality, text, call, or face-to-face. He remembers your conversations, reaches out on his own, and even searches the internet to help you find the perfect gift."
       }
     }
     return null
   }
 
   const getMessage = () => {
-    if (error === 'dailyLimitReached') {
-      return t('santaWorkshopError')
-    }
     if (error === 'maxConcurrency') {
       return t('santaBusyError')
     }
@@ -60,7 +51,7 @@ export const ConnectingScreen = ({ error, selectedLanguage = 'en' }) => {
           
           <figure>
             <img src={ASSET_PATHS.images.postcardStamp} alt="" aria-hidden="true" className={callEndedStyles.stampImage} />
-            <img src={ASSET_PATHS.images.lastSanta} alt="The artist formerly known as Santa" className={callEndedStyles.santaImage} />
+            <img src={ASSET_PATHS.images.lastSanta} alt="The artist formerly known as Bad Santa" className={callEndedStyles.santaImage} />
           </figure>
         </div>
       )

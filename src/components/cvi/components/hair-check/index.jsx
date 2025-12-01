@@ -91,7 +91,7 @@ export const HairCheck = memo(({ isJoinBtnLoading = false, onJoin, onCancel, con
 					<div className={styles.placeholder}>
 						<img 
 							src="/processed-image (81).png" 
-							alt="Santa background" 
+							alt="Bad Santa background" 
 						/>
 						{/* Overlay handled by ::after pseudo-element in CSS */}
 					</div>

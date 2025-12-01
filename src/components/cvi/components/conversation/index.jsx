@@ -14,12 +14,9 @@ import { useReplicaIDs } from '../../hooks/use-replica-ids';
 import { useCVICall } from '../../hooks/use-cvi-call';
 import { useLocalCamera } from '../../hooks/use-local-camera';
 import { useLocalMicrophone } from '../../hooks/use-local-microphone';
-import { useScoreTracking } from '../../../../hooks/useScoreTracking';
-// import { getCurrentScoreContext } from '../../../../utils/scoreUtils';
 import { get5SecondMessages } from '../../../../utils/santaGreetings';
 import { useSound } from '../../../../contexts/SoundContext';
 import { AudioWave } from '../audio-wave';
-import { NaughtyNiceBar } from '../../../NaughtyNiceBar/NaughtyNiceBar';
 
 import styles from './conversation.module.css';
 
@@ -93,7 +90,7 @@ const MainVideo = React.memo(() => {
 				>
 					<source src="/north pole.mp4" type="video/mp4" />
 				</video>
-				<p className={styles.waitingText}>Connecting to the North Pole...</p>
+				<p className={styles.waitingText}>Connecting to the South Pole...</p>
 			</div>
 		);
 	}
@@ -125,7 +122,6 @@ export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, c
 	const { hasMicError, microphones, cameras, currentMic, currentCam, setMicrophone, setCamera } = useDevices();
 	const { isCamMuted, onToggleCamera } = useLocalCamera();
 	const { isMicMuted, onToggleMicrophone, localSessionId } = useLocalMicrophone();
-	const { currentScore, processMessage } = useScoreTracking();
 	const replicaIds = useReplicaIDs();
 	const replicaId = replicaIds[0];
 	const videoState = useVideoTrack(replicaId);
@@ -136,7 +132,6 @@ export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, c
 	const replicaReadyNotifiedRef = useRef(false);
 	const micDropdownRef = useRef(null);
 	const videoDropdownRef = useRef(null);
-	const scoreContextSentRef = useRef(false);
 	const echo5sSentRef = useRef(false);
 	const echo5sPendingRef = useRef(false);
 	const timeCheck45sSentRef = useRef(false);
@@ -237,8 +232,6 @@ export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, c
 			timeCheck45sSentRef.current = false;
 			timeCheck45sPendingRef.current = false;
 			echo5sIndexRef.current = 0;
-			// Reset context flags when joining
-			scoreContextSentRef.current = false;
 			// Reset replica speaking state
 			isReplicaSpeakingRef.current = false;
 		}
@@ -252,6 +245,13 @@ export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, c
 			onReplicaReady();
 		}
 	}, [meetingState, replicaId, isReplicaPresent, videoState, onReplicaReady]);
+
+	// Track countdown changes for debugging
+	useEffect(() => {
+		if (countdown % 10 === 0 || countdown <= 10) {
+			console.log(`[Conversation] Countdown: ${countdown} seconds remaining`);
+		}
+	}, [countdown]);
 
 	// Automatically end call when countdown reaches 0
 	useEffect(() => {
@@ -379,35 +379,13 @@ export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, c
 				eventType === 'conversation.utterance';
 
 
-			// Replica is present - mark it and send score context (once per conversation)
+			// Replica is present - mark it (once per conversation)
 			if (eventType === 'system.replica_present') {
 				// Only process this event once - it may fire multiple times
 				if (!replicaPresentProcessedRef.current) {
 					console.log('[Conversation] Replica is present - participant can now be considered fully joined');
 					setIsReplicaPresent(true);
 					replicaPresentProcessedRef.current = true;
-					
-					// if (!scoreContextSentRef.current && conversationId) {
-					// 	try {
-					// 		const scoreContext = getCurrentScoreContext('user', 'santa-call', currentScore);
-
-					// 		if (sendAppMessage) {
-					// 			sendAppMessage({
-					// 				message_type: "conversation",
-					// 				event_type: "conversation.respond",
-					// 				conversation_id: conversationId,
-					// 				properties: {
-					// 					text: scoreContext,
-					// 				},
-					// 			});
-					// 			scoreContextSentRef.current = true;
-					// 		} else {
-					// 			console.error('[Conversation] sendAppMessage is not available!');
-					// 		}
-					// 	} catch (error) {
-					// 		console.error('[Conversation] Error sending score context:', error);
-					// 	}
-					// }
 				}
 				// Silently ignore duplicate events - no need to log them
 			}
@@ -437,13 +415,12 @@ export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, c
 			// Check both role and event type to catch all possible utterance events
 			if (
 				(role === 'replica' || isUtteranceEvent) &&
-				utteranceText &&
-				typeof utteranceText === 'string' &&
-				utteranceText.length > 0
-			) {
-				// Process message - this extracts tags, updates score, and returns clean text
-				processMessage(utteranceText);
-			}
+			utteranceText &&
+			typeof utteranceText === 'string' &&
+			utteranceText.length > 0
+		) {
+			// Message received (score processing removed)
+		}
 		});
 
 		return () => {
@@ -451,7 +428,7 @@ export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, c
 				unsubscribe();
 			}
 		};
-	}, [onAppMessage, sendAppMessage, conversationId, processMessage, currentScore, selectedLanguage]);
+	}, [onAppMessage, sendAppMessage, conversationId, selectedLanguage]);
 
 	// Close dropdowns when clicking outside
 	useEffect(() => {
@@ -473,8 +450,10 @@ export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, c
 	}, [showMicDropdown, showVideoDropdown]);
 
 	const formatDuration = (seconds) => {
-		const mins = Math.floor(seconds / 60);
-		const secs = seconds % 60;
+		// Clamp seconds to prevent huge numbers (max 99:59 = 5999 seconds)
+		const clampedSeconds = Math.max(0, Math.min(seconds, 5999));
+		const mins = Math.floor(clampedSeconds / 60);
+		const secs = clampedSeconds % 60;
 		return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 	};
 
@@ -879,11 +858,6 @@ export const Conversation = React.memo(forwardRef(({ onLeave, conversationUrl, c
 							</div>
 						)}
 					</div>
-				</div>
-
-				{/* Bottom Row: Naughty/Nice Slider */}
-				<div className={styles.footerControlsBottom}>
-					<NaughtyNiceBar score={currentScore} selectedLanguage={selectedLanguage} />
 
 					{/* Close Button */}
 					<button type="button" className={styles.leaveButton} onClick={() => {
