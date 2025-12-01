@@ -6,6 +6,8 @@ Create your own AI Santa variation with Tavus! This is a fully functional, festi
 
 ## 🚀 Quick Start
 
+**Before you start:** You'll need to create your own persona in Tavus - you cannot use the persona ID from this template. See step 4 for details!
+
 ### 1. Fork This Repo
 Click the "Fork" button at the top of this page to create your own copy.
 
@@ -20,27 +22,38 @@ This project uses a pre-made Santa replica. The replica ID is already configured
 You don't need to change this - just use it as-is!
 
 ### 4. Create Your Persona (Personality Prompt)
-**Note**: By default, this template uses **Bad Santa** (persona ID: `p472056757c3`). If you want to keep Bad Santa, you can skip this step! Otherwise, create your own:
 
-In the Tavus dashboard:
-1. Create a new **Persona** (this is the personality/prompt that defines how your Santa behaves)
+**⚠️ Important:** You **cannot** use the persona ID `p472056757c3` from this template - it's tied to a specific Tavus account and won't work with your API key. You **must** create your own persona!
+
+#### Option A: Use the Bad Santa Prompt (Recommended)
+
+Want to recreate Bad Santa? Steal the prompt and make your own:
+
+1. Open [`BAD_SANTA_PROMPT.md`](./BAD_SANTA_PROMPT.md) in this repo - it contains the full Bad Santa personality prompt
+2. Go to your [Tavus dashboard](https://platform.tavus.io) and create a new **Persona**
+3. Copy the entire prompt from `BAD_SANTA_PROMPT.md` and paste it into the persona creation form
+4. Save your persona and copy your **Persona ID** (it will look like `p472056757c3`)
+
+#### Option B: Create Your Own Santa Variant
+
+Create a completely custom Santa personality:
+
+1. In the Tavus dashboard, create a new **Persona**
 2. Write a personality prompt describing your Santa variant. Examples:
    - "A tropical Santa who lives on a beach, wears flip-flops, and talks about surfing instead of reindeer"
    - "A mall-cop Santa who's very serious about security and asks visitors for ID"
    - "A Santa who's clearly in witness protection and keeps looking over his shoulder"
-3. Copy your **Persona ID** (it will look like `p472056757c3`)
+3. Save your persona and copy your **Persona ID**
 
 ### 5. Add Your Persona ID to the Project
-**If you're using the default Bad Santa**, you can skip this step! The persona ID is already set.
 
-**If you created a custom persona**:
 1. Open `api/create-conversation.js`
 2. Find these lines (around line 232-233):
    ```javascript
-   const HARDCODED_PERSONA_ID = 'p472056757c3'  // Default: Bad Santa
+   const HARDCODED_PERSONA_ID = 'p472056757c3'  // Replace with YOUR persona ID
    const HARDCODED_REPLICA_ID = 'raa1d440ec4a'
    ```
-3. Replace `'p472056757c3'` with your new Persona ID:
+3. Replace `'p472056757c3'` with **your** Persona ID:
    ```javascript
    const HARDCODED_PERSONA_ID = 'your_persona_id_here'
    ```
