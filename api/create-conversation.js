@@ -251,7 +251,7 @@ export default async function handler(req, res) {
     
     // Add language properties only if language is provided
     if (language && typeof language === 'string') {
-      const tavusLanguage = languageMap[language.toLowerCase()] || languageMap['en']
+      const tavusLanguage = languageMap[language.toLowerCase()] || languageMap['ru']
       finalRequestBody.properties = {
         language: tavusLanguage
       }
