@@ -194,6 +194,7 @@ export default async function handler(req, res) {
     // Map language codes to Tavus API language format
     // Only includes languages supported by Tavus API
     const languageMap = {
+      'ru': 'russian',
       'en': 'english',
       'fr': 'french',
       'de': 'german',
@@ -206,7 +207,6 @@ export default async function handler(req, res) {
       'ko': 'korean',
       'nl': 'dutch',
       'pl': 'polish',
-      'ru': 'russian',
       'sv': 'swedish',
       'tr': 'turkish',
       'id': 'indonesian',
