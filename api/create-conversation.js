@@ -229,7 +229,7 @@ export default async function handler(req, res) {
     }
 
     // HARDCODED VALUES - NEVER CHANGE THESE
-    const HARDCODED_PERSONA_ID = 'pf5d006722da'
+    const HARDCODED_PERSONA_ID = 'pc3f72e3cf67'
     const HARDCODED_REPLICA_ID = 'raa1d440ec4a'
     
     // ==========================================
