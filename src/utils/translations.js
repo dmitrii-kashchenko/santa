@@ -608,7 +608,7 @@ export const translations = {
     loadingHolidayMagic: 'Загрузка праздничной магии…',
     geoblockedTitle: 'Извините, эта услуга недоступна в вашем регионе',
     santaIsCalling: 'Санта звонит вам',
-    answerHisCall: 'ОТВЕТИТЬ НА ЕГО ЗВОНОК',
+    answerHisCall: 'ПРИНЯТЬ ЗВОНОК',
     santaIsNowPal: 'Санта теперь ДРУГ!',
     santaPalDescription: 'Он может отправлять сообщения, звонить и разговаривать лицом к лицу в любое время. Он может помочь составить рождественские списки, добавить вас в список хороших и распространить рождественское настроение.',
     continueConversation: 'Продолжить Разговор',
@@ -626,7 +626,7 @@ export const translations = {
     joinVideoCall: 'ПРИСОЕДИНИТЬСЯ К ВИДЕОЗВОНКУ',
     dialingToNorthPole: 'Звонок на Северный полюс…',
     legalText: 'Начиная разговор, я принимаю Условия использования Tavus и признаю Политику конфиденциальности.',
-    cameraMicReady: 'Убедитесь, что ваша камера и микрофон готовы!',
+    cameraMicReady: 'Убедитесь, что твоя камера и микрофон готовы!',
     gettingCameraMicReady: 'Подготовка камеры и микрофона…',
     cameraMicDenied: 'Доступ к камере и микрофону запрещен. Разрешите разрешения для продолжения.',
     deviceReady: 'Все готово! Ваше устройство готово.',
@@ -1532,15 +1532,15 @@ export const translations = {
 
 // Helper function to get translation with fallback to English
 export function getTranslation(languageCode, key) {
-  const lang = translations[languageCode] || translations.en;
-  return lang[key] || translations.en[key] || key;
+  const lang = translations[languageCode] || translations.ru;
+  return lang[key] || translations.ru[key] || key;
 }
 
 // Hook for using translations
 export function useTranslation(languageCode) {
   return (key) => {
-    const lang = translations[languageCode] || translations.en;
-    return lang[key] || translations.en[key] || key;
+    const lang = translations[languageCode] || translations.ru;
+    return lang[key] || translations.ru[key] || key;
   };
 }
 
