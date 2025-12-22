@@ -28,7 +28,7 @@ function App() {
   const [isAnswered, setIsAnswered] = useState(simulateCallEnded)
   const [isHairCheckComplete, setIsHairCheckComplete] = useState(simulateCallEnded)
   const [isCallEnded, setIsCallEnded] = useState(simulateCallEnded)
-  const [selectedLanguage, setSelectedLanguage] = useState('en')
+  const [selectedLanguage, setSelectedLanguage] = useState('ru')
   const windowRef = useRef(null)
   const flappyWindowRef = useRef(null)
   const hasBeenMinimizedRef = useRef(false)
