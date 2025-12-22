@@ -589,7 +589,7 @@ export const translations = {
     videoOn: 'WIDEO WŁ',
   },
   ru: {
-    heroMeet: 'встретьте AI Санту',
+    heroMeet: ' ',
     christmasCountdown: 'ОБРАТНЫЙ ОТСЧЕТ ДО РОЖДЕСТВА',
     days: 'ДНИ',
     hrs: 'ЧАС',
