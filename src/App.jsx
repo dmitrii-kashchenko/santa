@@ -8,7 +8,7 @@ import { LoadingScreen } from './components/LoadingScreen/LoadingScreen'
 import { Background } from './components/Background/Background'
 import { Header } from './components/Header/Header'
 import { HeroText } from './components/HeroText/HeroText'
-//import { Footer } from './components/Footer/Footer'
+// import { Footer } from './components/Footer/Footer'
 import { MobileCountdown } from './components/MobileCountdown/MobileCountdown'
 import { MobilePowered } from './components/MobilePowered/MobilePowered'
 import { WindowIcon } from './components/WindowIcon/WindowIcon'
@@ -86,12 +86,7 @@ function App() {
       
       <HeroText selectedLanguage={selectedLanguage} />
 
-      <Footer 
-        selectedLanguage={selectedLanguage}
-        onLanguageChange={setSelectedLanguage}
-        isDisabled={isHairCheckComplete && !isCallEnded}
-        hideLanguageSelector={isHairCheckComplete && !isCallEnded}
-      />
+
 
       <MobilePowered isWindowOpen={hasBeenMinimizedRef.current && (!isMinimized || !isFlappyMinimized)} />
 
