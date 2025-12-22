@@ -2,7 +2,7 @@ import { LanguageSelector } from '../LanguageSelector/LanguageSelector'
 import { MusicToggle } from '../MusicToggle/MusicToggle'
 import styles from './Header.module.css'
 
-export const Header = ({ selectedLanguage, onLanguageChange, isDisabled = false, hideLanguageSelector = false }) => {
+export const Header = ({ selectedLanguage, onLanguageChange, isDisabled = false, hideLanguageSelector = true }) => {
   return (
     <header className={styles.header}>
       <div className={styles.headerLeft}>
