@@ -9,35 +9,11 @@ export const CallEndedScreen = ({ onContinue, selectedLanguage = 'en' }) => {
   return (
     <div className={styles.callEndedContainer}>
       <section>
-        <h1>Bad Santa LOVED talking with you</h1>
-        <p><strong>Keep the conversation going.</strong> Make Bad Santa your PAL and continue talking to Bad Santa in ANY modality, text, call, or face-to-face. He remembers your conversations, reaches out on his own, and even searches the internet to help you find the perfect gift.</p>
-        <a href="http://platform.tavus.io/auth/sign-up?source=santa_demo" target="_blank" rel="noopener noreferrer">
-          Sign up for free
+        <h1>Спасибо за чудесный разговор</h1>
+        <p>Теперь Санта должен уделить время и другим хорошим мальчикам и девочкам</p>
+        <a href="https://www.dny2026.digital" target="_blank" rel="noopener noreferrer">
+          Вернуться на сайт
         </a>
-        <span className={styles.shareRowDivider}>Or share to…</span>
-        <div>
-          <a 
-            href={`https://twitter.com/intent/tweet?text=${encodeURIComponent('Don\'t sit on his lap, have a chat. Talk with AI Bad Santa today:\n\nhttps://santa.tavus.io @Tavus')}`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <img src={ASSET_PATHS.icons.xIcon} alt="Share to X" />
-          </a>
-          <a 
-            href={`https://www.linkedin.com/feed/?shareActive&mini=true&text=${encodeURIComponent('I just met (AI) Bad Santa for real at https://santa.tavus.io/')}`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <img src={ASSET_PATHS.icons.linkedinIcon} alt="Share to LinkedIn" />
-          </a>
-          <a 
-            href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent('https://santa.tavus.io')}&quote=${encodeURIComponent('BAD SANTA IS REAL. Meet AI Bad Santa at santa.tavus.io')}`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <img src={ASSET_PATHS.icons.facebookIcon} alt="Share to Facebook" />
-          </a>
-        </div>
       </section>
       
       <figure>
