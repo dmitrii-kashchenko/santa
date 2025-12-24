@@ -9,8 +9,8 @@ export const CallEndedScreen = ({ onContinue, selectedLanguage = 'en' }) => {
   return (
     <div className={styles.callEndedContainer}>
       <section>
-        <h1>Спасибо за чудесный разговор</h1>
-        <p>Теперь Санта должен уделить время и другим хорошим мальчикам и девочкам</p>
+        <h1>Спасибо за этот разговор. Санта рад был пообщаться с тобой.</h1>
+        <p>Время встреч ограничено, поэтому он отправляется дальше, чтобы успеть ко всем.</p>
         <a href="https://www.dny2026.digital" target="_blank" rel="noopener noreferrer">
           Вернуться на сайт
         </a>
